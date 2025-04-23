@@ -1,0 +1,6 @@
+# Archivos de Maven
+target/
+
+# Archivos de configuración de IDEs
+.idea/
+.vscode/
