@@ -35,11 +35,15 @@ public class followpos {
                 followMap.get(no_terminal_cabeza).add("$");
             }
             for (String produccion_actual : array_producciones_unKey) { // Revisar todas las producciones para un NT
+                if (produccion_actual == null) {
+                    break;// Saltar transiciones epsilon
+                }
+
                 // Separar elementos en la producción
-                char[] elementos_resultado = produccion_actual.replace(" ", "").toCharArray();
+                String[] elementos_resultado = produccion_actual.trim().split("\\s+");
 
                 for (int i = 0; i < elementos_resultado.length; i++) { // Iterar elementos en la procucción
-                    String actual_element_str = String.valueOf(elementos_resultado[i]); // Elemento como string
+                    String actual_element_str = elementos_resultado[i]; // Elemento como string
 
                     if (grammar.getNoTerminales().contains(actual_element_str)) { // Si elemento es un no terminal
                         Set<String> rules_result = check_rules(no_terminal_cabeza, i, elementos_resultado);
@@ -77,8 +81,12 @@ public class followpos {
      * @param produccion todos los elementos en la produccion
      * @return set con elementos a añadir al set de follow
      */
-    private Set<String> check_rules(String B, int A_position, char[] produccion) {
+    private Set<String> check_rules(String B, int A_position, String[] produccion) {
         Set<String> result = new HashSet<>();
+        if (produccion[A_position].equals(B)) {
+            return result;
+        }
+
         if (A_position == produccion.length - 1) {
             // beta = epsilon
             // aplico regla 3 (B -> ɑA)
@@ -87,8 +95,8 @@ public class followpos {
         }
 
         // aplico B -> ɑAß
-        char[] beta = Arrays.copyOfRange(produccion, A_position + 1, produccion.length);
-        String first_beta = String.valueOf(beta[0]);
+        String[] beta = Arrays.copyOfRange(produccion, A_position + 1, produccion.length);
+        String first_beta = beta[0];
         if (grammar.getNoTerminales().contains(first_beta)) {
 
             // aplico regla 3 donde ß -> epsilon
