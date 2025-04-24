@@ -53,7 +53,7 @@ public class followpos {
             }
         }
 
-        int clean_sets = 0;
+        int clean_sets = 0; // Cantidad de sets guardados sin epsilon ni no terminales
         int totalNoTerminales = followMap.keySet().size();
 
         while (clean_sets != totalNoTerminales) {
@@ -94,12 +94,13 @@ public class followpos {
      */
     private Set<String> check_rules(String B, int A_position, String[] produccion) {
         Set<String> result = new HashSet<>();
-        if (produccion[A_position].equals(B)) { // A = B
-            return result;
-        }
 
         if (A_position == produccion.length - 1) {
             // beta = epsilon
+            if (produccion[A_position].equals(B)) { // A = B
+                return result;
+            }
+
             // aplico regla 3 (B -> ɑA)
             result.add(B); // B como centinela, debe usarse follow(B) al terminar
             return result;
