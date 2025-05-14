@@ -9,11 +9,40 @@ import java.util.Set;
 
 import models.Grammar;
 
+/**
+ * Clase para calcular los conjuntos FOLLOW de una gramática libre de contexto.
+ * 
+ * Se basa en la gramática proporcionada y los conjuntos FIRST para
+ * construir los conjuntos FOLLOW de cada no terminal, siguiendo las reglas
+ * clásicas
+ * de análisis sintáctico.
+ * 
+ * Reglas principales aplicadas:
+ * - Regla 1: El símbolo inicial incluye '$' en su FOLLOW.
+ * - Regla 2: Si un no terminal A es seguido por una cadena β, se agregan los
+ * primeros símbolos de FIRST(β) a FOLLOW(A).
+ * - Regla 3: Si β puede derivar a ε, se agrega FOLLOW del no terminal que
+ * contiene a A.
+ * 
+ * Uso principal:
+ * 1. Crear una instancia pasando una gramática y sus conjuntos FIRST.
+ * 2. Llamar a `getFollowPos(simbolo_inicial)` para obtener la tabla de FOLLOW.
+ * 
+ * Nota: Esta implementación maneja producciones múltiples y símbolos de epsilon
+ * como `null`.
+ */
 public class followpos {
     private Grammar grammar;
     private Map<String, Set<String>> firstMap;
     private Map<String, Set<String>> followMap = new HashMap<>();
 
+    /**
+     * Constructor de la clase followpos.
+     * 
+     * @param grammar  Objeto Grammar que contiene los no terminales, terminales y
+     *                 producciones.
+     * @param firstMap Mapa de conjuntos FIRST de cada no terminal.
+     */
     public followpos(Grammar grammar, Map<String, Set<String>> firstMap) {
         this.grammar = grammar;
         this.firstMap = firstMap;
@@ -24,7 +53,15 @@ public class followpos {
         }
     }
 
-    public Map<String, Set<String>> getFollowPos(String simbolo_inicial) {
+    /**
+     * Calcula y retorna los conjuntos FOLLOW para todos los no terminales de la
+     * gramática.
+     * 
+     * @return Mapa que asocia cada no terminal con su conjunto FOLLOW
+     *         correspondiente.
+     */
+    public Map<String, Set<String>> getFollowPos() {
+        String simbolo_inicial = grammar.getInitialSimbol();
         Map<String, List<String>> todas_producciones = grammar.getProductions();
 
         for (String no_terminal_cabeza : todas_producciones.keySet()) {
@@ -84,13 +121,17 @@ public class followpos {
     }
 
     /**
-     * Esta función inspecciona las reglas que pueden aplicarse a una producción,
-     * dado un 'A'
+     * Verifica y aplica las reglas para determinar qué elementos deben añadirse al
+     * FOLLOW
+     * de un no terminal dado, basado en su posición dentro de una producción.
      * 
-     * @param B          'cabeza' de la produccion
-     * @param A_position posición del elemento 'A' para la regla
-     * @param produccion todos los elementos en la produccion
-     * @return set con elementos a añadir al set de follow
+     * @param B          No terminal "cabeza" de la producción actual.
+     * @param A_position Índice donde se encuentra el no terminal A en la
+     *                   producción.
+     * @param produccion Arreglo que contiene los elementos (terminales y no
+     *                   terminales) de la producción.
+     * @return Un conjunto de strings que deben ser añadidos al FOLLOW del no
+     *         terminal analizado.
      */
     private Set<String> check_rules(String B, int A_position, String[] produccion) {
         Set<String> result = new HashSet<>();
@@ -160,7 +201,7 @@ public class followpos {
         }
 
         followpos follow_calc = new followpos(grammar, tablaFirst);
-        Map<String, Set<String>> tablaFollow = follow_calc.getFollowPos("E");
+        Map<String, Set<String>> tablaFollow = follow_calc.getFollowPos();
         System.out.println("\nResultado FOLLOW:");
         for (Map.Entry<String, Set<String>> entry : tablaFollow.entrySet()) {
             System.out.println("Follow(" + entry.getKey() + ") = " + entry.getValue());
