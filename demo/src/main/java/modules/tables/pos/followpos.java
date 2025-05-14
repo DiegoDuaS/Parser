@@ -129,7 +129,7 @@ public class followpos {
     }
 
     public static void main(String[] args) {
-        Grammar grammar = new Grammar();
+        Grammar grammar = new Grammar("S");
 
         grammar.agregarNoTerminal("E");
         grammar.agregarNoTerminal("E'");

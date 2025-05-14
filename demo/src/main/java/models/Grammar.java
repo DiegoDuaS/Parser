@@ -1,7 +1,7 @@
 package models;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,11 +9,13 @@ public class Grammar {
     private Map<String, List<String>> productions; // Producciones por no terminal
     private List<String> terminales; // Terminales
     private List<String> noTerminales; // No terminales
+    private String initialSimbol;
 
-    public Grammar() {
-        this.productions = new HashMap<>();
+    public Grammar(String initialSimbol) {
+        this.productions =  new LinkedHashMap<>();
         this.terminales = new ArrayList<>();
         this.noTerminales = new ArrayList<>();
+        this.initialSimbol = initialSimbol;
     }
 
     // Método para agregar una producción
@@ -44,5 +46,13 @@ public class Grammar {
 
     public List<String> getNoTerminales() {
         return noTerminales;
+    }
+
+    public String getInitialSimbol() {
+        return initialSimbol;
+    }
+
+    public void setInitialSimbol(String initialSimbol) {
+        this.initialSimbol = initialSimbol;
     }
 }

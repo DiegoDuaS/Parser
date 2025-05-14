@@ -272,7 +272,7 @@ public class followpost_try2 {
     
     // Método para pruebas
     public static void main(String[] args) {
-        Grammar grammar = new Grammar();
+        Grammar grammar = new Grammar("S");
         
         // Configurar la gramática de ejemplo
         grammar.agregarNoTerminal("S");
