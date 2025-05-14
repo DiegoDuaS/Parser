@@ -25,6 +25,12 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+        <groupId>com.mi.compilador</groupId>
+        <artifactId>analisis-lexico</artifactId>
+        <version>1.0</version>
+    </dependency>
   </dependencies>
 
   <build>
