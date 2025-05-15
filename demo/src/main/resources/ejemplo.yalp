@@ -1,23 +1,59 @@
 /* Definición de parser */
 /* INICIA Sección de TOKENS */
-%token TOKEN_1
-%token TOKEN_2
-%token TOKEN_3 TOKEN_4
+%token PLUS MINUS TIMES DIV
+%token LPAREN RPAREN
+%token POINT COMA NUMERAL EQUALS
+%token DIGIT NUMBER WORD VARIABLE
+%token COMMENT
+%token APPERSAND
+%token LESS LESSEQ MORE MOREEQ
+%token LHOOK RHOOK
+%token LBRAKETS RBRAKETS
+%token EOL EOF
+
 %token WS
 IGNORE WS
 /* FINALIZA Sección de TOKENS */
+
 %%
 /* INICIA Sección de PRODUCCIONES */
-production1:
-production1 TOKEN_2 production2
-| production2
+
+// Una producción tipo expresión aritmética
+program:
+    statements EOF
 ;
-production2:
-production2 TOKEN_2 production3
-| production3
+
+statements:
+    statements statement
+    | statement
 ;
-production3:
-TOKEN_3 production1 TOKEN_4
-| TOKEN_1
+
+statement:
+    assignment
+    | expression
+    | COMMENT
 ;
+
+assignment:
+    VARIABLE EQUALS expression
+;
+
+expression:
+    expression PLUS term
+    | expression MINUS term
+    | term
+;
+
+term:
+    term TIMES factor
+    | term DIV factor
+    | factor
+;
+
+factor:
+    NUMBER
+    | VARIABLE
+    | LPAREN expression RPAREN
+;
+
 /* FINALIZA Sección de PRODUCCIONES */

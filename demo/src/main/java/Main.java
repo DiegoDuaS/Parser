@@ -15,28 +15,28 @@ public class Main {
     public static void main(String[] args) {
         try {
             // Ejecutar análisis léxico
-            // AÑADIR PARÁMETRO DE RUTA AL ARCHIVO DE CÓDIGO
-            // List<Token> Lex_tokens = Complete_Lex.completeLex("");
+            List<Token> Lex_tokens = Complete_Lex.completeLex("code.txt");
 
             // Leer archivo yalp
+            System.err.println("\n\n******************Análisis Sintáctico********************");
             yalpInterpreter file_reader = new yalpInterpreter();
             file_reader.readFile("ejemplo.yalp");
 
             Map<String, List<String>> productions = file_reader.getSavedProductions();
             System.out.println(productions);
             System.out.println();
+
             // Comparar tokens recibidos con los obtenidos del generador léxico
             Set<String> terminalesSet = new HashSet<>(file_reader.getSavedTokens());
             System.out.println(terminalesSet);
-            // Set<String> tipos_tokens = new HashSet<>();
-            // for (Token token : Lex_tokens) {
-            // tipos_tokens.add(token.getTipo());
-            // }
+            Set<String> tipos_tokens = new HashSet<>();
+            for (Token token : Lex_tokens) {
+                tipos_tokens.add(token.getTipo());
+            }
 
-            // if (terminalesSet != tipos_tokens)
-            // System.err.println(
-            // "Hay discrepancias entre los tokens obtenidos por el analizador léxico y los
-            // tokens definidos en el archivo yalp");
+            if (terminalesSet.containsAll(tipos_tokens))
+                System.err.println(
+                        "Hay discrepancias entre los tokens obtenidos por el analizador léxico y los tokens definidos en el archivo yalp");
 
             terminalesSet.removeAll(file_reader.getIgnoredTokens());
             List<String> terminales = new ArrayList<>(terminalesSet);
