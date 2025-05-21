@@ -8,13 +8,16 @@ import java.util.Map;
 public class GrammarExtended {
 
     private String initialSymbol;
-    // Producciones: NoTerminal -> Lista de (producción, puntero)
     private Map<String, List<ProductionWithPointer>> productions = new LinkedHashMap<>();
+    private List<String> terminales; // Terminales
+    private List<String> noTerminales; // No terminales
 
 
     public GrammarExtended(String initialSymbol) {
         this.initialSymbol = initialSymbol;
         this.productions = new LinkedHashMap<>();
+        this.terminales = new ArrayList<>();
+        this.noTerminales = new ArrayList<>();
     }
 
     public void agregarProduccion(String noTerminal, List<String> produccion, int pointer) {
@@ -41,6 +44,22 @@ public class GrammarExtended {
                 System.out.println(noTerminal + " -> " + prod);
             }
         }
+    }
+
+    public List<String> getTerminales() {
+        return terminales;
+    }
+
+    public void setTerminales(List<String> terminales) {
+        this.terminales = terminales;
+    }
+
+    public List<String> getNoTerminales() {
+        return noTerminales;
+    }
+
+    public void setNoTerminales(List<String> noTerminales) {
+        this.noTerminales = noTerminales;
     }
 
     public static class ProductionWithPointer {

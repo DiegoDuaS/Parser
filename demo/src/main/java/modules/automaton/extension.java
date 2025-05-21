@@ -25,6 +25,9 @@ public class extension {
             }
         }
 
+        gext.setNoTerminales(original.getNoTerminales());
+        gext.setTerminales(original.getTerminales());
+
         return gext;
     }
 
@@ -65,5 +68,7 @@ public class extension {
             }
         }
     }
+
+    
 }
 
