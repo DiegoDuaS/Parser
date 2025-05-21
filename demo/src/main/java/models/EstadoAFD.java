@@ -1,14 +1,10 @@
 package models;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 public class EstadoAFD {
     private String id;
     private List<GrammarExtended.ProductionWithPointer> items;
-    private String initial_state;
-    private List<String> acceptance_states;
-    private HashMap<String, List<String>> transitions_table;
 
     public EstadoAFD(String id) {
         this.id = id;
@@ -49,28 +45,5 @@ public class EstadoAFD {
         this.items = items;
     }
 
-    public String getInitial_state() {
-        return initial_state;
-    }
-
-    public void setInitial_state(String id){
-        this.initial_state = id;
-    }
-
-    public List<String> getAcceptance_states() {
-        return acceptance_states;
-    }
-
-    public void setAccpetance_state(String id){
-        this.acceptance_states.add(id);
-    }
-
-    public void setTransitions_table(HashMap<String, List<String>> transitions_table) {
-        this.transitions_table = transitions_table;
-    }
-
-    public HashMap<String, List<String>> getTransitions_table() {
-        return transitions_table;
-    }
 }
 

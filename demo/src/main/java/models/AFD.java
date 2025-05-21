@@ -12,16 +12,14 @@ public class AFD implements Serializable {
     private HashMap<String, List<String>> transitions_table;
     private List<String> states;
     private List<String> alphabet;
-    private List<String> tokens;
     private String initial_state;
     private List<String> acceptance_states;
 
     public AFD(HashMap<String, List<String>> transitions_table, List<String> states, List<String> alphabet,
-            List<String> tokens, String initial_state, List<String> acceptance_states) {
+     String initial_state, List<String> acceptance_states) {
         this.transitions_table = transitions_table;
         this.states = states;
         this.alphabet = alphabet;
-        this.tokens = tokens;
         this.initial_state = initial_state;
         this.acceptance_states = acceptance_states;
     }
@@ -48,14 +46,6 @@ public class AFD implements Serializable {
 
     public void setAlphabet(List<String> alphabet) {
         this.alphabet = alphabet;
-    }
-
-    public List<String> getTokens() {
-        return tokens;
-    }
-
-    public void setTokens(List<String> tokens) {
-        this.tokens = tokens;
     }
 
     public String getInitial_state() {
@@ -201,7 +191,7 @@ public class AFD implements Serializable {
         transitions.put("q2", Arrays.asList("q3", "q0"));
         transitions.put("q3", Arrays.asList("q2", "q1"));
 
-        AFD afd = new AFD(transitions, states, alphabet, new ArrayList<>(), initial_state, acceptance_states);
+        AFD afd = new AFD(transitions, states, alphabet, initial_state, acceptance_states);
         afd.printAFD();
     }
 }
