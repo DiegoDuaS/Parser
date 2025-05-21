@@ -1,18 +1,22 @@
 package models;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 public class EstadoAFD {
-    private String nombre;
+    private String id;
     private List<GrammarExtended.ProductionWithPointer> items;
+    private String initial_state;
+    private List<String> acceptance_states;
+    private HashMap<String, List<String>> transitions_table;
 
-    public EstadoAFD(String nombre) {
-        this.nombre = nombre;
-        this.items = new ArrayList<>();
+    public EstadoAFD(String id) {
+        this.id = id;
+        this.items = new LinkedList<>();
     }
 
-    public String getNombre() {
-        return nombre;
+    public String getId() {
+        return id;
     }
 
     public List<GrammarExtended.ProductionWithPointer> getItems() {
@@ -34,15 +38,39 @@ public class EstadoAFD {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(nombre + ":\n");
+        StringBuilder sb = new StringBuilder(id + ":\n");
         for (GrammarExtended.ProductionWithPointer item : items) {
             sb.append("  ").append(item).append("\n");
         }
         return sb.toString();
     }
 
-    public Object getTransiciones() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void setItems(LinkedList<GrammarExtended.ProductionWithPointer> items){
+        this.items = items;
+    }
+
+    public String getInitial_state() {
+        return initial_state;
+    }
+
+    public void setInitial_state(String id){
+        this.initial_state = id;
+    }
+
+    public List<String> getAcceptance_states() {
+        return acceptance_states;
+    }
+
+    public void setAccpetance_state(String id){
+        this.acceptance_states.add(id);
+    }
+
+    public void setTransitions_table(HashMap<String, List<String>> transitions_table) {
+        this.transitions_table = transitions_table;
+    }
+
+    public HashMap<String, List<String>> getTransitions_table() {
+        return transitions_table;
     }
 }
 

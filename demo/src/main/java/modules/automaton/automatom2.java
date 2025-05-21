@@ -16,7 +16,7 @@ import models.GrammarExtended;
 import models.GrammarExtended.ProductionWithPointer;
 import static modules.automaton.extension.extenderGramatica;
 
-public class automaton {
+public class automatom2 {
 
     public static EstadoAFD crearEstadoInicial(GrammarExtended gext) {
         EstadoAFD estado0 = new EstadoAFD("0");
@@ -29,88 +29,8 @@ public class automaton {
         return estado0;
     }
 
-
-    public static Map<String, EstadoAFD> generarEstados(GrammarExtended gext, EstadoAFD estadoInicial) {
-        Map<String, EstadoAFD> estados = new LinkedHashMap<>();
-        Queue<EstadoAFD> pendientes = new LinkedList<>();
-        Map<String, List<ProductionWithPointer>> closures = construirClosures(gext);
-        List<String> noTerminales = gext.getNoTerminales();
-
-        estados.put(estadoInicial.getId(), estadoInicial);
-        pendientes.add(estadoInicial);
-        
-
-        int contadorEstado = 1;
-
-        while (!pendientes.isEmpty()) {
-            EstadoAFD actual = pendientes.poll();
-
-            Map<String, List<GrammarExtended.ProductionWithPointer>> movimientos = new HashMap<>();
-
-            for (GrammarExtended.ProductionWithPointer item : actual.getItems()) {
-                if (item.getPointer() < item.getSymbols().size()) {
-                    String simbolo = item.getSymbols().get(item.getPointer());
-                    GrammarExtended.ProductionWithPointer nuevo = new GrammarExtended.ProductionWithPointer(item.getSymbols(), item.getPointer() + 1);
-                    movimientos.computeIfAbsent(simbolo, k -> new ArrayList<>()).add(nuevo);
-                }
-            }
-
-            for (Map.Entry<String, List<GrammarExtended.ProductionWithPointer>> transicion : movimientos.entrySet()) {
-                String simbolo = transicion.getKey();
-                List<GrammarExtended.ProductionWithPointer> nuevosItems = transicion.getValue();
-
-                // Buscar si ya existe un estado con esos items
-                boolean encontrado = false;
-                for (EstadoAFD existente : estados.values()) {
-                    if (new HashSet<>(existente.getItems()).containsAll(nuevosItems)) {
-                        encontrado = true;
-                        break;
-                    }
-                }
-
-                if (!encontrado) {
-                    EstadoAFD nuevoEstado = new EstadoAFD(String.valueOf(contadorEstado++));
-                    String simboloActual = "";
-                    boolean found = false; 
-
-                    System.out.println("Transición por símbolo: " + simbolo);
-                    System.out.println("→ Nuevo estado: " + nuevoEstado.getId());
-
-                    for (GrammarExtended.ProductionWithPointer item : nuevosItems) {
-                        nuevoEstado.agregarItem(item);
-                        // Mostrar símbolo donde está el puntero (si no está al final)
-                        if (item.getPointer() < item.getSymbols().size()) {
-                            simboloActual = item.getSymbols().get(item.getPointer());
-                            if (noTerminales.contains(simboloActual)){
-                                found = true;
-                            }
-                        } else {
-                            System.out.print("  <-- Puntero al final");
-                        }
-                    }
-
-                    if(found){
-                        System.out.println("FOUND");
-                        //List<ProductionWithPointer> closureItems = closures.get(simboloActual);
-                        //for (ProductionWithPointer closure: closureItems){
-                          //  nuevoEstado.agregarItem(closure);
-                        //}
-                    }
-
-                    estados.put(nuevoEstado.getId(), nuevoEstado);
-                    pendientes.add(nuevoEstado);
-
-                    System.out.println("----");
-                }
-
-            }
-        }
-
-        return estados;
-    }
-
-    public static List<GrammarExtended.ProductionWithPointer> closure(String simbolo, GrammarExtended gext) {
-        List<GrammarExtended.ProductionWithPointer> resultado = new ArrayList<>();
+     public static List<GrammarExtended.ProductionWithPointer> closure(String simbolo, GrammarExtended gext) {
+        List<GrammarExtended.ProductionWithPointer> resultado = new LinkedList<>();
         Set<String> visitados = new HashSet<>();
         Queue<String> porVisitar = new LinkedList<>();
 
@@ -148,8 +68,86 @@ public class automaton {
         return closureMap;
     }
 
+    @SuppressWarnings("null")
+    public static Map<String, EstadoAFD> generarEstados(GrammarExtended gext, EstadoAFD estadoInicial){
+        Map<String, EstadoAFD> estados = new LinkedHashMap<>();
+        List<String> noTerminales = gext.getNoTerminales();
+        int statecheck = 0;
+        int statescreated = 0; 
 
-     public static void main(String[] args) {
+        estados.put(estadoInicial.getId(), estadoInicial);
+
+        while(statecheck <= statescreated){
+            EstadoAFD actual = estados.get(String.valueOf(statecheck));
+
+            Map<String, List<GrammarExtended.ProductionWithPointer>> movimientos = new HashMap<>();
+
+            for (GrammarExtended.ProductionWithPointer item : actual.getItems()) {
+                if (item.getPointer() < item.getSymbols().size()) {
+                    String simbolo = item.getSymbols().get(item.getPointer());
+                    GrammarExtended.ProductionWithPointer nuevo = new GrammarExtended.ProductionWithPointer(item.getSymbols(), item.getPointer() + 1);
+                    movimientos.computeIfAbsent(simbolo, k -> new ArrayList<>()).add(nuevo);
+                }
+            }
+
+            for (Map.Entry<String, List<GrammarExtended.ProductionWithPointer>> transicion : movimientos.entrySet()) {
+                String simbolo = transicion.getKey();
+                List<GrammarExtended.ProductionWithPointer> nuevosItems = transicion.getValue();
+                boolean encontrado = false;
+                List<GrammarExtended.ProductionWithPointer> closureItems = null;
+                List<GrammarExtended.ProductionWithPointer> itemsCompletos = new ArrayList<>(nuevosItems);
+
+                for (GrammarExtended.ProductionWithPointer item : nuevosItems) {
+                    if (item.getPointer() < item.getSymbols().size()) {
+                        String simboloActual = item.getSymbols().get(item.getPointer());
+                        if (noTerminales.contains(simboloActual)) {
+                            closureItems = closure(simboloActual, gext);
+                        }
+                    }
+                }
+                
+                if (closureItems != null) {
+                    for(ProductionWithPointer itemclosure: closureItems){
+                        itemsCompletos.add(itemclosure);
+                    }
+                }
+                
+                System.out.println("REVISANDO SI HAY TRANSICIONES DISPONIBLES PARA ESTADO " + statecheck);
+                for (EstadoAFD existente : estados.values()) {
+                    if (new HashSet<>(existente.getItems()).containsAll(itemsCompletos)) {
+                        System.out.println( statecheck + " - " + simbolo + " > "+ existente.getId());
+                        encontrado = true;
+                        break;
+                    }
+                }
+
+                if (!encontrado) {
+                    System.out.println("**CREANDO NUEVO ESTADO**");
+                    statescreated++;
+                    EstadoAFD nuevoEstado = new EstadoAFD(String.valueOf(statescreated));
+                    System.out.println("Transición por símbolo: " + simbolo);
+                    System.out.println("→ Nuevo estado: " + nuevoEstado.getId());
+
+                    for (GrammarExtended.ProductionWithPointer item : itemsCompletos) {
+                        nuevoEstado.agregarItem(item);
+                    }
+                    estados.put(nuevoEstado.getId(), nuevoEstado);
+                    System.out.println("Items del estado " + nuevoEstado.getId() + ":");
+                    for (GrammarExtended.ProductionWithPointer item : nuevoEstado.getItems()) {
+                        System.out.println("  " + item); 
+                    }
+                    System.out.println(statecheck + " - " + simbolo + " > "+ statescreated);
+                    System.out.println("----");
+                }
+            }
+            statecheck++;
+
+        }
+
+        return estados;
+    }
+
+    public static void main(String[] args) {
         // 1. Crear gramática base
         Grammar g = new Grammar("S");
         g.agregarNoTerminal("S");
@@ -181,7 +179,7 @@ public class automaton {
         }
 
         // 4. Crear el estado inicial del AFD
-        EstadoAFD estado0 = automaton.crearEstadoInicial(extendida);
+        EstadoAFD estado0 = crearEstadoInicial(extendida);
         System.out.println("\nEstado inicial:");
         System.out.println(estado0.getId());
         for (ProductionWithPointer item : estado0.getItems()) {
@@ -189,7 +187,7 @@ public class automaton {
         }
 
         // 5. Generar todos los estados del AFD
-        Map<String, EstadoAFD> estadosAFD = automaton.generarEstados(extendida, estado0);
+        Map<String, EstadoAFD> estadosAFD = generarEstados(extendida, estado0);
 
         // 6. Imprimir todos los estados y sus transiciones
         System.out.println("\nEstados AFD generados:");
@@ -200,15 +198,7 @@ public class automaton {
             }
         }
 
-        List<GrammarExtended.ProductionWithPointer> cierre = closure("S'", extendida);
-        for (GrammarExtended.ProductionWithPointer item : cierre) {
-            System.out.println(item);
-        }
-
     }
-
     
-
-
     
 }

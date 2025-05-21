@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class GrammarExtended {
 
@@ -89,5 +90,20 @@ public class GrammarExtended {
             if (pointer == symbols.size()) sb.append(".");
             return sb.toString().trim();
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ProductionWithPointer that = (ProductionWithPointer) o;
+            return pointer == that.pointer &&
+                Objects.equals(symbols, that.symbols);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(symbols, pointer);
+        }
+        
     }
 }
