@@ -39,14 +39,16 @@ public class ParsingTable {
         return originalGrammar;
     }
 
-    public void setActionTable(Map<String, Map<String, String>> actionTable) {
-        this.actionTable = actionTable;
+    public void agregarAction(String state, String symbol, String action) {
+        this.actionTable
+            .computeIfAbsent(state, k -> new HashMap<>())
+            .put(symbol, action);
     }
 
-    public void setGoToTable(Map<String, Map<String, String>> goToTable) {
-        this.goToTable = goToTable;
+    public void agregarGoTo(String state, String nonTerminal, String nextState) {
+        this.goToTable
+            .computeIfAbsent(state, k -> new HashMap<>())
+            .put(nonTerminal, nextState);
     }
-
-
 
 }
