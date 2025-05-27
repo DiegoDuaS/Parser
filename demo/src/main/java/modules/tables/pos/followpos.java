@@ -18,7 +18,7 @@ import models.Grammar;
  * de análisis sintáctico.
  * 
  * Reglas principales aplicadas:
- * - Regla 1: El símbolo inicial incluye '$' en su FOLLOW.
+ * - Regla 1: El símbolo inicial incluye el símbolo centinela en su FOLLOW.
  * - Regla 2: Si un no terminal A es seguido por una cadena β, se agregan los
  * primeros símbolos de FIRST(β) a FOLLOW(A).
  * - Regla 3: Si β puede derivar a ε, se agrega FOLLOW del no terminal que
@@ -35,6 +35,11 @@ public class followpos {
     private Grammar grammar;
     private Map<String, Set<String>> firstMap;
     private Map<String, Set<String>> followMap = new HashMap<>();
+    private String sentinel;
+
+    public String getSentinel() {
+        return sentinel;
+    }
 
     /**
      * Constructor de la clase followpos.
@@ -46,10 +51,33 @@ public class followpos {
     public followpos(Grammar grammar, Map<String, Set<String>> firstMap) {
         this.grammar = grammar;
         this.firstMap = firstMap;
+        sentinel = "$";
 
         // Incializar sets vacios en el mapa follow
         for (String no_terminal_cabeza : grammar.getProductions().keySet()) {
             followMap.put(no_terminal_cabeza, new HashSet<>());
+        }
+
+        // Registrar símbolo centinela
+        validSentinel();
+    }
+
+    /**
+     * Valida que el centinela utilizado no esté presente en la gramática.
+     * Si ya está en uso, busca una combinación válida agregando un entero al
+     * centinela base.
+     */
+    private void validSentinel() {
+        Set<String> simbolosEnUso = new HashSet<>();
+        simbolosEnUso.addAll(grammar.getNoTerminales());
+        simbolosEnUso.addAll(grammar.getTerminales()); // Asegúrate de tener esta función
+
+        int intento = 1;
+
+        // Probar distintas variantes de centinela hasta que no esté en uso
+        while (simbolosEnUso.contains(sentinel)) {
+            sentinel = "$" + intento;
+            intento++;
         }
     }
 
@@ -68,7 +96,7 @@ public class followpos {
             List<String> array_producciones_unKey = todas_producciones.get(no_terminal_cabeza);
             if (no_terminal_cabeza.equals(simbolo_inicial)) {
                 // aplica regla 1
-                followMap.get(no_terminal_cabeza).add("$");
+                followMap.get(no_terminal_cabeza).add(sentinel);
             }
             for (String produccion_actual : array_producciones_unKey) { // Revisar todas las producciones para un NT
                 if (produccion_actual == null) {
@@ -172,6 +200,8 @@ public class followpos {
     public static void main(String[] args) {
         Grammar grammar = new Grammar("S");
 
+        grammar.setInitialSimbol("E");
+
         grammar.agregarNoTerminal("E");
         grammar.agregarNoTerminal("E'");
         grammar.agregarNoTerminal("T");
@@ -183,6 +213,7 @@ public class followpos {
         grammar.agregarTerminal(")");
         grammar.agregarTerminal("*");
         grammar.agregarTerminal("id");
+        grammar.agregarTerminal("$");
 
         grammar.agregarProduccion("E", "T E'");
         grammar.agregarProduccion("E'", "+ T E'");
