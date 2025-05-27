@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import models.AFD;
 import models.EstadoAFD;
 import models.Grammar;
 import models.GrammarExtended;
@@ -74,8 +73,7 @@ public class automatom2 {
         List<String> noTerminales = gext.getNoTerminales();
         int statecheck = 0;
         int statescreated = 0; 
-        HashMap<String, List<String>> transitionsTable;
-        List<String> states = new LinkedList<>(); 
+        Map<String, Map<String, String>> transitionsTable = new HashMap<>();
         List<String> acceptance_states = new LinkedList<>(); 
 
         estados.put(estadoInicial.getId(), estadoInicial);
@@ -83,7 +81,6 @@ public class automatom2 {
         //Se corre hasta que se checqueen todos los estados que se van creando dinamicamente
         while(statecheck <= statescreated){
             EstadoAFD actual = estados.get(String.valueOf(statecheck));
-
             LinkedHashMap<String, List<GrammarExtended.ProductionWithPointer>> movimientos = new LinkedHashMap<>();
 
             // Mover el pointer por cada movimiento que se pueda hacer en el estado
@@ -93,6 +90,11 @@ public class automatom2 {
                     GrammarExtended.ProductionWithPointer nuevo = new GrammarExtended.ProductionWithPointer(item.getSymbols(), item.getPointer() + 1);
                     movimientos.computeIfAbsent(simbolo, k -> new ArrayList<>()).add(nuevo);
                 }
+                else {
+                    if(!acceptance_states.contains(String.valueOf(statecheck))){
+                        acceptance_states.add(String.valueOf(statecheck));
+                    }
+                }
             }
 
             // Creacion de estados/generacion de transiciones
@@ -100,6 +102,7 @@ public class automatom2 {
                 String simbolo = transicion.getKey();
                 List<GrammarExtended.ProductionWithPointer> nuevosItems = transicion.getValue();
                 boolean encontrado = false;
+                String destinoId = null;
                 List<GrammarExtended.ProductionWithPointer> closureItems = null;
                 List<GrammarExtended.ProductionWithPointer> itemsCompletos = new ArrayList<>(nuevosItems);
 
@@ -120,42 +123,46 @@ public class automatom2 {
                     }
                 }
                 
-                // Revision de estados creados para confirmar que es un nuevo estado o una transicion
-                System.out.println("REVISANDO SI HAY TRANSICIONES DISPONIBLES PARA ESTADO " + statecheck);
                 for (EstadoAFD existente : estados.values()) {
-                    if (new HashSet<>(existente.getItems()).containsAll(itemsCompletos)) {
-                        
-                        System.out.println( statecheck + " - " + simbolo + " > "+ existente.getId());
+                    Set<ProductionWithPointer> setExistente = new HashSet<>(existente.getItems());
+                    Set<ProductionWithPointer> setNuevo = new HashSet<>(itemsCompletos);
+                    if (setExistente.equals(setNuevo)) {
                         encontrado = true;
+                        destinoId = existente.getId();
                         break;
                     }
                 }
                 
                 // Creacion de estado en caso de ser unico
                 if (!encontrado) {
-                    System.out.println("**CREANDO NUEVO ESTADO**");
                     statescreated++;
                     EstadoAFD nuevoEstado = new EstadoAFD(String.valueOf(statescreated));
-                    System.out.println("Transición por símbolo: " + simbolo);
-                    System.out.println("→ Nuevo estado: " + nuevoEstado.getId());
-
                     for (GrammarExtended.ProductionWithPointer item : itemsCompletos) {
                         nuevoEstado.agregarItem(item);
                     }
                     estados.put(nuevoEstado.getId(), nuevoEstado);
-                    System.out.println("Items del estado " + nuevoEstado.getId() + ":");
-                    for (GrammarExtended.ProductionWithPointer item : nuevoEstado.getItems()) {
-                        System.out.println("  " + item); 
-                    }
-                    System.out.println(statecheck + " - " + simbolo + " > "+ statescreated);
-                    System.out.println("----");
+                    destinoId = nuevoEstado.getId();
                 }
+
+                 transitionsTable
+                    .computeIfAbsent(actual.getId(), k -> new HashMap<>())
+                    .put(simbolo, destinoId);
             }
             statecheck++;
-
         }
 
-        AFD afd = new AFD(null, null, null, "0", null);
+        System.out.println("TRANSICIONES");
+        for (Map.Entry<String, Map<String, String>> entry : transitionsTable.entrySet()) {
+            String from = entry.getKey();
+            for (Map.Entry<String, String> trans : entry.getValue().entrySet()) {
+                System.out.println("δ(" + from + ", " + trans.getKey() + ") = " + trans.getValue());
+            }
+        }
+
+        System.out.println("ESTADOS DE ACCEPTACION");
+        for(String state: acceptance_states){
+            System.out.println(state);
+        }
 
         return estados;
     }
