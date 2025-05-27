@@ -10,13 +10,14 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import models.AFD;
 import models.EstadoAFD;
 import models.Grammar;
 import models.GrammarExtended;
 import models.GrammarExtended.ProductionWithPointer;
 import static modules.automaton.extension.extenderGramatica;
 
-public class automatom2 {
+public class automatom {
 
     public static EstadoAFD crearEstadoInicial(GrammarExtended gext) {
         EstadoAFD estado0 = new EstadoAFD("0");
@@ -60,44 +61,32 @@ public class automatom2 {
         return resultado;
     }
 
-    public static Map<String, List<GrammarExtended.ProductionWithPointer>> construirClosures(GrammarExtended gext) {
-        Map<String, List<GrammarExtended.ProductionWithPointer>> closureMap = new HashMap<>();
-        for (String noTerminal : gext.getNoTerminales()) {
-            closureMap.put(noTerminal, closure(noTerminal, gext));
-        }
-        return closureMap;
-    }
-
-    public static Map<String, EstadoAFD> generarEstados(GrammarExtended gext, EstadoAFD estadoInicial){
+    public static AFD generarAFD(GrammarExtended gext, EstadoAFD estadoInicial) {
         LinkedHashMap<String, EstadoAFD> estados = new LinkedHashMap<>();
         List<String> noTerminales = gext.getNoTerminales();
         int statecheck = 0;
-        int statescreated = 0; 
+        int statescreated = 0;
         Map<String, Map<String, String>> transitionsTable = new HashMap<>();
-        List<String> acceptance_states = new LinkedList<>(); 
+        List<String> acceptanceStates = new LinkedList<>();
 
         estados.put(estadoInicial.getId(), estadoInicial);
 
-        //Se corre hasta que se checqueen todos los estados que se van creando dinamicamente
-        while(statecheck <= statescreated){
+        while (statecheck <= statescreated) {
             EstadoAFD actual = estados.get(String.valueOf(statecheck));
             LinkedHashMap<String, List<GrammarExtended.ProductionWithPointer>> movimientos = new LinkedHashMap<>();
 
-            // Mover el pointer por cada movimiento que se pueda hacer en el estado
             for (GrammarExtended.ProductionWithPointer item : actual.getItems()) {
                 if (item.getPointer() < item.getSymbols().size()) {
                     String simbolo = item.getSymbols().get(item.getPointer());
                     GrammarExtended.ProductionWithPointer nuevo = new GrammarExtended.ProductionWithPointer(item.getSymbols(), item.getPointer() + 1);
                     movimientos.computeIfAbsent(simbolo, k -> new ArrayList<>()).add(nuevo);
-                }
-                else {
-                    if(!acceptance_states.contains(String.valueOf(statecheck))){
-                        acceptance_states.add(String.valueOf(statecheck));
+                } else {
+                    if (!acceptanceStates.contains(actual.getId())) {
+                        acceptanceStates.add(actual.getId());
                     }
                 }
             }
 
-            // Creacion de estados/generacion de transiciones
             for (Map.Entry<String, List<GrammarExtended.ProductionWithPointer>> transicion : movimientos.entrySet()) {
                 String simbolo = transicion.getKey();
                 List<GrammarExtended.ProductionWithPointer> nuevosItems = transicion.getValue();
@@ -106,7 +95,6 @@ public class automatom2 {
                 List<GrammarExtended.ProductionWithPointer> closureItems = null;
                 List<GrammarExtended.ProductionWithPointer> itemsCompletos = new ArrayList<>(nuevosItems);
 
-                // Verificacion de necesidad de agregar closure
                 for (GrammarExtended.ProductionWithPointer item : nuevosItems) {
                     if (item.getPointer() < item.getSymbols().size()) {
                         String simboloActual = item.getSymbols().get(item.getPointer());
@@ -115,25 +103,21 @@ public class automatom2 {
                         }
                     }
                 }
-                
-                // Agregar closure al estado si fuera necesario
+
                 if (closureItems != null) {
-                    for(ProductionWithPointer itemclosure: closureItems){
-                        itemsCompletos.add(itemclosure);
-                    }
+                    itemsCompletos.addAll(closureItems);
                 }
-                
+
                 for (EstadoAFD existente : estados.values()) {
-                    Set<ProductionWithPointer> setExistente = new HashSet<>(existente.getItems());
-                    Set<ProductionWithPointer> setNuevo = new HashSet<>(itemsCompletos);
+                    Set<GrammarExtended.ProductionWithPointer> setExistente = new HashSet<>(existente.getItems());
+                    Set<GrammarExtended.ProductionWithPointer> setNuevo = new HashSet<>(itemsCompletos);
                     if (setExistente.equals(setNuevo)) {
                         encontrado = true;
                         destinoId = existente.getId();
                         break;
                     }
                 }
-                
-                // Creacion de estado en caso de ser unico
+
                 if (!encontrado) {
                     statescreated++;
                     EstadoAFD nuevoEstado = new EstadoAFD(String.valueOf(statescreated));
@@ -144,28 +128,16 @@ public class automatom2 {
                     destinoId = nuevoEstado.getId();
                 }
 
-                 transitionsTable
+                transitionsTable
                     .computeIfAbsent(actual.getId(), k -> new HashMap<>())
                     .put(simbolo, destinoId);
             }
             statecheck++;
         }
 
-        System.out.println("TRANSICIONES");
-        for (Map.Entry<String, Map<String, String>> entry : transitionsTable.entrySet()) {
-            String from = entry.getKey();
-            for (Map.Entry<String, String> trans : entry.getValue().entrySet()) {
-                System.out.println("δ(" + from + ", " + trans.getKey() + ") = " + trans.getValue());
-            }
-        }
-
-        System.out.println("ESTADOS DE ACCEPTACION");
-        for(String state: acceptance_states){
-            System.out.println(state);
-        }
-
-        return estados;
+        return new AFD(estados, transitionsTable, estadoInicial.getId(), acceptanceStates);
     }
+
 
     public static void main(String[] args) {
         // 1. Crear gramática base
@@ -207,18 +179,30 @@ public class automatom2 {
         }
 
         // 5. Generar todos los estados del AFD
-        Map<String, EstadoAFD> estadosAFD = generarEstados(extendida, estado0);
+        AFD afd = generarAFD(extendida, estado0);
 
-        // 6. Imprimir todos los estados y sus transiciones
-        System.out.println("\nEstados AFD generados:");
-        for (EstadoAFD estado : estadosAFD.values()) {
-            System.out.println("Estado " + estado.getId() + ":");
-            for (ProductionWithPointer item : estado.getItems()) {
+        System.out.println("\n=== ESTADOS DEL AFD ===");
+        for (Map.Entry<String, EstadoAFD> entry : afd.getEstados().entrySet()) {
+            System.out.println("Estado ID: " + entry.getKey());
+            for (ProductionWithPointer item : entry.getValue().getItems()) {
                 System.out.println("  " + item);
             }
         }
 
-    }
+        System.out.println("\n=== TABLA DE TRANSICIONES ===");
+        for (Map.Entry<String, Map<String, String>> entry : afd.getTransitionsTable().entrySet()) {
+            String from = entry.getKey();
+            for (Map.Entry<String, String> trans : entry.getValue().entrySet()) {
+                System.out.println("δ(" + from + ", " + trans.getKey() + ") = " + trans.getValue());
+            }
+        }
+
+        System.out.println("\n=== ESTADOS DE ACEPTACIÓN ===");
+        for (String state : afd.getAcceptanceStates()) {
+            System.out.println("Estado: " + state);
+        }
+
+        }
     
     
 }
