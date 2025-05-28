@@ -19,7 +19,7 @@ import modules.tables.pos.followpos;
 
 public class generateParseTable {
 
-    public generateParseTable(AFD relatedAfd, Grammar originalGrammar) {
+    public static ParsingTable generateTables(AFD relatedAfd, Grammar originalGrammar) {
         // Crear objeto para tabla de parseo
         ParsingTable parseTable = new ParsingTable(relatedAfd, originalGrammar);
 
@@ -37,6 +37,8 @@ public class generateParseTable {
         parseTable.printParsingTables(follow_calc.getSentinel());
         System.out.println();
         parseTable.printReduceDictionary();
+
+        return parseTable;
     }
 
     /**
@@ -48,7 +50,7 @@ public class generateParseTable {
      * - Si el símbolo es un terminal, se registra una acción SHIFT.
      * - Si el símbolo es un no terminal, se registra una transición GOTO.
      */
-    public static void travelAFD(ParsingTable parseTable) {
+    private static void travelAFD(ParsingTable parseTable) {
         // Obtener la tabla de transiciones del AFD
         Map<String, Map<String, String>> transitions = parseTable.getAssociatedAfd().getTransitionsTable();
 
@@ -86,7 +88,7 @@ public class generateParseTable {
      * Luego, usando la tabla FOLLOW, se registran las acciones REDUCE en la tabla
      * de parsing.
      */
-    public static void reduceTable(ParsingTable parseTable, Map<String, Set<String>> tablaFollow) {
+    private static void reduceTable(ParsingTable parseTable, Map<String, Set<String>> tablaFollow) {
         // Obtener los estados de aceptación del AFD asociado a la tabla
         List<String> acceptanceStates = parseTable.getAssociatedAfd().getAcceptanceStates();
         // Obtener todos los estados del AFD
@@ -180,6 +182,6 @@ public class generateParseTable {
         // Generar AFD
         AFD afd = automatom.generarAFD(extendida, estado0);
 
-        new generateParseTable(afd, g);
+        generateParseTable.generateTables(afd, g);
     }
 }

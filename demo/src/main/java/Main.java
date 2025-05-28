@@ -8,8 +8,16 @@ import java.util.Set;
 import com.example.Modules.Analisis.Complete_Lex;
 import com.example.models.Token;
 
+import models.AFD;
+import models.EstadoAFD;
 import models.Grammar;
+import models.GrammarExtended;
+import models.ParsingTable;
+import models.GrammarExtended.ProductionWithPointer;
+import modules.automaton.automatom;
+import modules.automaton.extension;
 import modules.input.yalpInterpreter;
+import modules.tables.generateParseTable;
 
 public class Main {
     public static void main(String[] args) {
@@ -50,6 +58,24 @@ public class Main {
             }
 
             Grammar grammar = new Grammar(productions, terminales, noTerminales, initialSimbol);
+
+            // Extender la gramática
+            GrammarExtended extendida = extension.extenderGramatica(grammar);
+
+            // Crear el estado inicial del AFD
+            EstadoAFD estado0 = automatom.crearEstadoInicial(extendida);
+            System.out.println("\nEstado inicial:");
+            System.out.println(estado0.getId());
+            for (ProductionWithPointer item : estado0.getItems()) {
+                System.out.println("  " + item);
+            }
+
+            // Generar AFD
+            AFD afd = automatom.generarAFD(extendida, estado0);
+
+            // Generar tablas de parseo (action + go-to)
+            ParsingTable parseTable = generateParseTable.generateTables(afd, grammar);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
