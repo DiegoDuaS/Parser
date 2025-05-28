@@ -1,30 +1,24 @@
 package modules.tables;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import models.AFD;
 import models.EstadoAFD;
 import models.Grammar;
 import models.GrammarExtended;
 import models.ParsingTable;
-import models.GrammarExtended.ProductionWithPointer;
 import modules.automaton.automatom;
 import modules.automaton.extension;
+import modules.tables.pos.firstpos;
+import modules.tables.pos.followpos;
 
 public class generateParseTable {
-    ParsingTable parseTable;
 
-    public generateParseTable(ParsingTable table) {
-        parseTable = table;
-
-        // Registrar Goto y Switch
-        travelAFD();
-
-        // Registrar Reduce
-    }
-
-    private void travelAFD() {
+    public static void travelAFD(ParsingTable parseTable) {
         Map<String, Map<String, String>> transitions = parseTable.getAssociatedAfd().getTransitionsTable();
         List<String> terminales = parseTable.getOriginalGrammar().getTerminales();
         List<String> noTerminales = parseTable.getOriginalGrammar().getNoTerminales();
@@ -44,6 +38,28 @@ public class generateParseTable {
 
         }
     }
+
+    public static void reduceTable(ParsingTable parseTable, Map<String, Set<String>> tablaFollow){
+        Map<String, Map<Map<String, List<String>>, String>> reduceRelations = new HashMap<>();
+        List<String> acceptanceStates = parseTable.getAssociatedAfd().getAcceptanceStates();
+        LinkedHashMap<String, EstadoAFD> estados = parseTable.getAssociatedAfd().getEstados();
+        Map<String, List<String>> produccionesOG = parseTable.getOriginalGrammar().getProductions();
+        acceptanceStates.remove(0);
+
+        int reductionCounter = 1;
+        for(String id: acceptanceStates){
+            for(EstadoAFD estado : estados.values()){
+                for (GrammarExtended.ProductionWithPointer production : estado.getItems()) {
+                    if (production.getPointer() == production.getSymbols().size()) {
+                        System.out.println(id + "-" + production.getSymbols() + "-" + "R" + reductionCounter);
+                        reductionCounter++;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
 
     public static void main(String[] args) {
         // Generar gramática base
@@ -70,19 +86,22 @@ public class generateParseTable {
 
         // Crear el estado inicial del AFD
         EstadoAFD estado0 = automatom.crearEstadoInicial(extendida);
-        System.out.println("\nEstado inicial:");
-        System.out.println(estado0.getId());
-        for (ProductionWithPointer item : estado0.getItems()) {
-            System.out.println("  " + item);
-        }
-
+        
         // Generar AFD
         AFD afd = automatom.generarAFD(extendida, estado0);
 
         // Crear objeto para tabla de parseo
         ParsingTable parseTable = new ParsingTable(afd, g);
 
-        new generateParseTable(parseTable);
+        travelAFD(parseTable);
+
+        firstpos first_calc = new firstpos(g);
+        Map<String, Set<String>> tablaFirst = first_calc.calcularFirstPos();
+
+        followpos follow_calc = new followpos(g, tablaFirst);
+        Map<String, Set<String>> tablaFollow = follow_calc.getFollowPos();
+
+        reduceTable(parseTable, tablaFollow);
 
         // IMPRIMIR RESULTADOS
         // action table
