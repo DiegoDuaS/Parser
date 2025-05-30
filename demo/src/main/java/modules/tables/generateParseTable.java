@@ -32,6 +32,8 @@ public class generateParseTable {
         Map<String, Set<String>> tablaFollow = follow_calc.getFollowPos();
 
         reduceTable(parseTable, tablaFollow);
+        parseTable.agregarAction("1", "$", "ACCEPT");
+
 
         // IMPRIMIR RESULTADOS
         parseTable.printParsingTables(follow_calc.getSentinel());
