@@ -96,8 +96,7 @@ public class ErrorHandler {
         // Por defecto, es un token inesperado
         return ErrorType.TOKEN_INESPERADO;
     }
-    
-    /**
+      /**
      * Genera mensaje de error descriptivo
      * 
      * Proceso implementado:
@@ -107,7 +106,29 @@ public class ErrorHandler {
      * 4. Formatear mensaje para el usuario
      */
     private String generateErrorMessage(String currentState, String currentToken, int position, ErrorType errorType) {
-       
+        StringBuilder message = new StringBuilder();
+        
+        // Mensaje base según tipo de error
+        switch (errorType) {
+            case TOKEN_INESPERADO:
+                message.append("Token inesperado '").append(currentToken).append("'");
+                break;
+            case FIN_PREMATURO:
+                message.append("Fin prematuro de la entrada");
+                break;
+            case SIMBOLO_FALTANTE:
+                message.append("Símbolo faltante antes del final");
+                break;
+            case SECUENCIA_INVALIDA:
+                message.append("Secuencia de tokens inválida");
+                break;
+        }
+        
+        // Agregar información de contexto
+        message.append(" en la posición ").append(position);
+        message.append(" (estado ").append(currentState).append(")");
+        
+        return message.toString();
     }
     
     /**
@@ -119,7 +140,16 @@ public class ErrorHandler {
      * 3. Filtrar y formatear para mostrar al usuario
      */
     private Set<String> getExpectedTokens(String currentState) {
-      
+        Set<String> expectedTokens = new HashSet<>();
+        
+        if (parsingTable != null && parsingTable.getActionTable().containsKey(currentState)) {
+            expectedTokens.addAll(parsingTable.getActionTable().get(currentState).keySet());
+        }
+        
+        // Remover entradas vacías o nulas
+        expectedTokens.removeIf(token -> token == null || token.trim().isEmpty());
+        
+        return expectedTokens;
     }
     
     /**
@@ -132,7 +162,32 @@ public class ErrorHandler {
      * 4. INSERT_TOKEN: Simular inserción de token faltante
      */
     public RecoveryAction attemptErrorRecovery(String currentState, String currentToken, int position, List<String> inputTokens) {
-      
+        // 1. Verificar si se puede insertar un token faltante
+        Set<String> expectedTokens = getExpectedTokens(currentState);
+        for (String expectedToken : expectedTokens) {
+            if (canInsertToken(expectedToken, currentState)) {
+                return RecoveryAction.INSERT_TOKEN;
+            }
+        }
+        
+        // 2. Buscar punto de sincronización hacia adelante
+        int syncPoint = findSynchronizationPoint(position, inputTokens);
+        if (syncPoint >= 0) {
+            return RecoveryAction.SYNC_FORWARD;
+        }
+        
+        // 3. Evaluar si saltar el token actual es viable
+        if (position < inputTokens.size() - 1) {
+            return RecoveryAction.SKIP_TOKEN;
+        }
+        
+        // 4. Como último recurso, hacer pop del stack
+        if (errorCount < 3) { // Solo si no hay demasiados errores
+            return RecoveryAction.POP_STACK;
+        }
+        
+        // 5. Si no hay recuperación viable, abortar
+        return RecoveryAction.ABORT;
     }
     
     /**
@@ -144,7 +199,20 @@ public class ErrorHandler {
      * 3. Retornar posición del símbolo encontrado
      */
     private int findSynchronizationPoint(int startPosition, List<String> inputTokens) {
+        // Definir símbolos de sincronización comunes
+        Set<String> syncSymbols = new HashSet<>();
+        syncSymbols.add("]"); // Cierre de bloques
+        syncSymbols.add("$"); // Final de entrada
+        syncSymbols.add("sentence"); // Elementos básicos de la gramática
         
+        // Buscar hacia adelante
+        for (int i = startPosition + 1; i < inputTokens.size(); i++) {
+            if (syncSymbols.contains(inputTokens.get(i))) {
+                return i;
+            }
+        }
+        
+        return -1; // No se encontró punto de sincronización
     }
     
     /**
