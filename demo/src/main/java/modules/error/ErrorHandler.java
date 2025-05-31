@@ -45,7 +45,32 @@ public class ErrorHandler {
      * 5. Decidir si continuar o abortar el parseo
      */
     public void handleSyntaxError(String currentState, String currentToken, int position, List<String> inputTokens) {
-   
+        // 1. Incrementar contador de errores
+        errorCount++;
+        
+        // 2. Determinar tipo de error
+        ErrorType errorType = determineErrorType(currentToken, position, inputTokens);
+        
+        // 3. Generar mensaje descriptivo
+        String errorMessage = generateErrorMessage(currentState, currentToken, position, errorType);
+        
+        // 4. Obtener tokens esperados
+        Set<String> expectedTokens = getExpectedTokens(currentState);
+        
+        // 5. Generar sugerencias
+        List<String> suggestions = generateSuggestions(currentToken, expectedTokens);
+        
+        // 6. Crear reporte de error
+        ErrorReport report = new ErrorReport(errorType, errorMessage, position, currentToken, expectedTokens, suggestions);
+        errorHistory.add(report);
+        
+        // 7. Reportar error
+        reportError(report);
+        
+        // 8. Intentar recuperación
+        RecoveryAction recovery = attemptErrorRecovery(currentState, currentToken, position, inputTokens);
+        
+        System.err.println("Estrategia de recuperación recomendada: " + recovery);
     }
     
     /**
@@ -58,7 +83,18 @@ public class ErrorHandler {
      * - SECUENCIA_INVALIDA: Secuencia de tokens no válida
      */
     private ErrorType determineErrorType(String currentToken, int position, List<String> inputTokens) {
-       
+        // Verificar si llegamos al final prematuramente
+        if (position >= inputTokens.size() || currentToken.equals("$")) {
+            return ErrorType.FIN_PREMATURO;
+        }
+        
+        // Verificar si es el último token válido antes del final
+        if (position == inputTokens.size() - 2 && inputTokens.get(inputTokens.size() - 1).equals("$")) {
+            return ErrorType.SIMBOLO_FALTANTE;
+        }
+        
+        // Por defecto, es un token inesperado
+        return ErrorType.TOKEN_INESPERADO;
     }
     
     /**
