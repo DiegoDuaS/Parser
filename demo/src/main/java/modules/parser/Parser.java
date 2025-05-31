@@ -1,13 +1,20 @@
 package modules.parser;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
+import models.AFD;
+import models.EstadoAFD;
 import models.Grammar;
+import models.GrammarExtended;
 import models.ParsingTable;
 import models.ReduceEntry;
+import modules.automaton.automatom;
+import modules.automaton.extension;
 import modules.error.ErrorHandler;
+import modules.tables.generateParseTable;
 
 /**
  * Módulo de Parseo - Realiza el análisis sintáctico LR(0)
@@ -329,6 +336,54 @@ public class Parser {
         g.agregarProduccion("Q", "[ S ]");
         g.agregarProduccion("Q", "sentence");
 
-      
+        // 2. Extender la gramática
+        GrammarExtended extendida = extension.extenderGramatica(g);
+
+        // 3. Crear el estado inicial del AFD
+        EstadoAFD estado0 = automatom.crearEstadoInicial(extendida);
+
+        // 4. Generar AFD
+        AFD afd = automatom.generarAFD(extendida, estado0);
+
+        // 5. Generar tablas de parseo
+        ParsingTable parseTable = generateParseTable.generateTables(afd, g);
+        
+        // 6. Crear parser
+        Parser parser = new Parser(parseTable);
+        
+        // 7. EJEMPLOS DE PARSEO
+        System.out.println("\n" + "=".repeat(60));
+        System.out.println("EJEMPLOS DE PARSEO");
+        System.out.println("=".repeat(60));
+        
+        // Ejemplo 1: sentence V sentence $ (debería ser aceptado)
+        System.out.println("\n--- EJEMPLO 1: sentence V sentence $ ---");
+        List<String> input1 = Arrays.asList("sentence", "V", "sentence", "$");
+        boolean resultado1 = parser.parse(input1);
+        System.out.println("Resultado: " + (resultado1 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
+        
+        // Ejemplo 2: [ sentence ] $ (debería ser aceptado)
+        System.out.println("\n--- EJEMPLO 2: [ sentence ] $ ---");
+        List<String> input2 = Arrays.asList("[", "sentence", "]", "$");
+        boolean resultado2 = parser.parse(input2);
+        System.out.println("Resultado: " + (resultado2 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
+        
+        // Ejemplo 3: sentence ^ [ sentence V sentence ] $ (debería ser aceptado)
+        System.out.println("\n--- EJEMPLO 3: sentence ^ [ sentence V sentence ] $ ---");
+        List<String> input3 = Arrays.asList("sentence", "^", "[", "sentence", "V", "sentence", "]", "$");
+        boolean resultado3 = parser.parse(input3);
+        System.out.println("Resultado: " + (resultado3 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
+        
+        // Ejemplo 4: sentence V $ (ERROR - incompleto)
+        System.out.println("\n--- EJEMPLO 4: sentence V $ (ERROR) ---");
+        List<String> input4 = Arrays.asList("sentence", "V", "$");
+        boolean resultado4 = parser.parse(input4);
+        System.out.println("Resultado: " + (resultado4 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
+        
+        // Ejemplo 5: [ sentence $ (ERROR - falta ])
+        System.out.println("\n--- EJEMPLO 5: [ sentence $ (ERROR) ---");
+        List<String> input5 = Arrays.asList("[", "sentence", "$");
+        boolean resultado5 = parser.parse(input5);
+        System.out.println("Resultado: " + (resultado5 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
     }
 }
