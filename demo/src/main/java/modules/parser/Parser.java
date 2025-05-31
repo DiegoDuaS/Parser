@@ -53,7 +53,48 @@ public class Parser {
      * 3. Retornar resultado del parseo
      */
     public boolean parse(List<String> tokens) {
-
+        this.inputTokens = new ArrayList<>(tokens);
+        initializeParsing();
+        
+        if (debug) {
+            System.out.println("\n=== INICIANDO PARSEO LR(0) ===");
+            System.out.println("Input: " + String.join(" ", inputTokens));
+            System.out.println("\nPASO A PASO:");
+            printHeader();
+        }
+        
+        while (!accepted && currentTokenIndex < inputTokens.size()) {
+            String currentState = getCurrentState();
+            String currentToken = getCurrentToken();
+            String action = getAction(currentState, currentToken);
+            
+            if (debug) {
+                printParserState(currentState, currentToken, action);
+            }
+            
+            if (action == null || action.isEmpty()) {
+                // Error sintáctico
+                handleError(currentState, currentToken);
+                return false;
+            }
+            
+            if (action.equals("ACCEPT")) {
+                executeAccept();
+                break;
+            } else if (action.startsWith("S")) {
+                executeShift(action);
+            } else if (action.startsWith("R")) {
+                executeReduce(action);
+            } else {
+                handleError(currentState, currentToken);
+                return false;
+            }
+        }
+        
+        if (debug && accepted) {
+            System.out.println("\n✅ EL INPUT ES ACEPTADO");
+        }
+        
         return accepted;
     }
     
@@ -65,30 +106,84 @@ public class Parser {
         symbolStack.clear();
         currentTokenIndex = 0;
         accepted = false;
-
+        
+        // Agregar estado inicial (0) al stack
+        stateStack.push("0");
+        
+        // Agregar símbolo centinela $ si no existe
+        if (!inputTokens.get(inputTokens.size() - 1).equals("$")) {
+            inputTokens.add("$");
+        }
     }
-    
+   
     /**
      * Ejecuta una operación SHIFT
      */
     private void executeShift(String action) {
-       
+        // Extraer número de estado de la acción (ej: "S5" -> "5")
+        String newState = action.substring(1);
+        String currentToken = getCurrentToken();
+        
+        // Push del símbolo actual al symbolStack
+        symbolStack.push(currentToken);
+        
+        // Push del nuevo estado al stateStack
+        stateStack.push(newState);
+        
+        // Avanzar al siguiente token
+        currentTokenIndex++;
     }
     
     /**
      * Ejecuta una operación REDUCE
      */
     private void executeReduce(String action) {
+        // Obtener información de la producción desde reduceDictionary
+        ReduceEntry reduceInfo = parsingTable.getReduceDictionary().get(action);
         
+        if (reduceInfo == null) {
+            System.err.println("Error: No se encontró información para " + action);
+            return;
+        }
+        
+        String productionHead = reduceInfo.getProduction_head();
+        String productionBody = reduceInfo.getProduction_value();
+        
+        // Contar elementos en el lado derecho de la producción
+        String[] rhsSymbols = productionBody.trim().split("\\s+");
+        int rhsLength = rhsSymbols.length;
+        
+        // Hacer pop de |producción| elementos de ambos stacks
+        for (int i = 0; i < rhsLength; i++) {
+            if (!stateStack.isEmpty()) stateStack.pop();
+            if (!symbolStack.isEmpty()) symbolStack.pop();
+        }
+        
+        // Hacer push del lado izquierdo de la producción al symbolStack
+        symbolStack.push(productionHead);
+        
+        // Consultar GOTO table con (estado_actual, no_terminal)
+        String currentState = getCurrentState();
+        String gotoState = getGotoState(currentState, productionHead);
+        
+        if (gotoState != null && !gotoState.isEmpty()) {
+            // Hacer push del nuevo estado al stateStack
+            stateStack.push(gotoState);
+        } else {
+            System.err.println("Error: No se encontró transición GOTO para (" + currentState + ", " + productionHead + ")");
+        }
     }
     
     /**
      * Ejecuta la operación ACCEPT
      */
     private void executeAccept() {
-       
+        accepted = true;
+        if (debug) {
+            System.out.println("Estado: " + getCurrentState() + " | Input: $ | Acción: ACCEPT");
+        }
     }
-    
+        
     /**
      * Obtiene el token actual como string
      */
