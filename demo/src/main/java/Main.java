@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.example.Modules.Analisis.Complete_Lex;
+import com.example.models.Token;
+
 import models.AFD;
 import models.EstadoAFD;
 import models.Grammar;
@@ -14,12 +17,14 @@ import models.ParsingTable;
 import modules.automaton.automatom;
 import modules.automaton.extension;
 import modules.input.yalpInterpreter;
+import modules.parser.Parser;
 import modules.tables.generateParseTable;
 
 public class Main {
     public static void main(String[] args) {
         try {
             // Ejecutar análisis léxico
+            List<Token> Lex_tokens = Complete_Lex.completeLex("code.txt", "lexer.yal");
 
             // Leer archivo yalp
             System.err.println("\n\n******************Análisis Sintáctico********************");
@@ -32,15 +37,22 @@ public class Main {
 
             // Comparar tokens recibidos con los obtenidos del generador léxico
             Set<String> terminalesSet = new HashSet<>(file_reader.getSavedTokens());
+            terminalesSet.removeAll(file_reader.getIgnoredTokens());
             System.out.println(terminalesSet);
-            Set<String> tipos_tokens = new HashSet<>();
-   
 
-            if (terminalesSet.containsAll(tipos_tokens))
+            Set<String> tipos_tokens = new HashSet<>();
+            for (Token token : Lex_tokens) {
+                tipos_tokens.add(token.getTipo());
+            }
+            System.out.println(tipos_tokens);
+
+            if (!terminalesSet.containsAll(tipos_tokens)) {
                 System.err.println(
                         "Hay discrepancias entre los tokens obtenidos por el analizador léxico y los tokens definidos en el archivo yalp");
-
-            terminalesSet.removeAll(file_reader.getIgnoredTokens());
+                System.err.println(
+                        "Revisa tus archivos de configuración o los resultados impresos para corregirlo y volver a intentarlo");
+                return;
+            }
             List<String> terminales = new ArrayList<>(terminalesSet);
 
             List<String> noTerminales = new ArrayList<>(productions.keySet());
@@ -69,6 +81,9 @@ public class Main {
 
             // Generar tablas de parseo (action + go-to)
             ParsingTable parseTable = generateParseTable.generateTables(afd, grammar);
+
+            // Crear parser
+            Parser parser = new Parser(parseTable);
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,0 +1,54 @@
+{
+    // Estos imports son parte de la lógica de compilación
+    // No deben quitarse para el buen funcionamiento
+    import com.example.Modules.Analisis.Lex_Analisis;
+    import com.example.models.AFD;
+    import java.io.FileInputStream;
+    import java.io.ObjectInputStream;
+    import java.io.IOException;
+}
+
+let digit = ['0'-'9']
+let number = digit+
+let blanks = ' '|'\t'
+let word = ['A'-'Z''a'-'z']+
+let comment = '''word'''
+let variable = word'_'number
+let punct = '?'|'!'|'.'
+let singleString = ('''|'"')(word|digit|' '|punct)*('''|'"')
+let menor = '>'
+let menorigual = menor'='
+let mayor = '<'
+let mayorigual = mayor'='
+
+let multilineCommentStart = '/''*'(comment|blanks)+
+let multilineCommentEnd = (comment|blanks)+'*''/'
+
+rule gettoken =
+blanks { return lexbuf }
+| '\n' { return EOL }
+| '+' { return PLUS }
+| '-' { return MINUS }
+| '*' { return TIMES }
+| '/' { return DIV }
+| '(' { return LPAREN }
+| '.' { return POINT }
+| ',' { return COMA }
+| ')' { return RPAREN }
+| '#' { return NUMERAL }
+| '=' { return EQUALS }
+| digit { return DIGIT }
+| number { return NUMBER }
+| singleString { return COMMENT }
+| variable { return VARIABLE }
+| word { return WORD }
+| '&' { return APPERSAND }
+| menor { return LESS }
+| mayor { return MORE }
+| menorigual { return LESSEQ }
+| mayorigual { return MOREEQ }
+| '{' { return LHOOK }
+| '}' { return RHOOK }
+| ';' { return EOF }
+| '[' { return LBRAKETS }
+| ']' { return RBRAKETS }

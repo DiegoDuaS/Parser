@@ -10,7 +10,7 @@
 %token LHOOK RHOOK
 %token LBRAKETS RBRAKETS
 %token EOL EOF
-%token EOL EOF
+%token lexbuf
 
 %token WS
 IGNORE WS
