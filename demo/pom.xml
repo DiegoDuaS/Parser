@@ -26,11 +26,11 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
+    <!-- <dependency>
         <groupId>com.mi.compilador</groupId>
         <artifactId>analisis-lexico</artifactId>
         <version>1.0</version>
-    </dependency>
+    </dependency> -->
   </dependencies>
 
   <build>

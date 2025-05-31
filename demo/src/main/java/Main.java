@@ -5,15 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.example.Modules.Analisis.Complete_Lex;
-import com.example.models.Token;
-
 import models.AFD;
 import models.EstadoAFD;
 import models.Grammar;
 import models.GrammarExtended;
-import models.ParsingTable;
 import models.GrammarExtended.ProductionWithPointer;
+import models.ParsingTable;
 import modules.automaton.automatom;
 import modules.automaton.extension;
 import modules.input.yalpInterpreter;
@@ -23,7 +20,6 @@ public class Main {
     public static void main(String[] args) {
         try {
             // Ejecutar análisis léxico
-            List<Token> Lex_tokens = Complete_Lex.completeLex("code.txt");
 
             // Leer archivo yalp
             System.err.println("\n\n******************Análisis Sintáctico********************");
@@ -38,9 +34,7 @@ public class Main {
             Set<String> terminalesSet = new HashSet<>(file_reader.getSavedTokens());
             System.out.println(terminalesSet);
             Set<String> tipos_tokens = new HashSet<>();
-            for (Token token : Lex_tokens) {
-                tipos_tokens.add(token.getTipo());
-            }
+   
 
             if (terminalesSet.containsAll(tipos_tokens))
                 System.err.println(
