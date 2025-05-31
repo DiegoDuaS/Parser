@@ -183,39 +183,54 @@ public class Parser {
             System.out.println("Estado: " + getCurrentState() + " | Input: $ | Acción: ACCEPT");
         }
     }
-        
-    /**
+     /**
      * Obtiene el token actual como string
      */
     private String getCurrentToken() {
-       
+        if (currentTokenIndex >= inputTokens.size()) {
+            return "$";
+        }
+        return inputTokens.get(currentTokenIndex);
     }
     
     /**
      * Obtiene el estado actual del tope del stack
      */
     private String getCurrentState() {
+        return stateStack.isEmpty() ? "0" : stateStack.peek();
     }
     
     /**
      * Consulta la tabla ACTION
      */
     private String getAction(String state, String symbol) {
-        
+        if (parsingTable.getActionTable().containsKey(state)) {
+            return parsingTable.getActionTable().get(state).get(symbol);
+        }
+        return null;
     }
     
     /**
      * Consulta la tabla GOTO
      */
     private String getGotoState(String state, String nonTerminal) {
-        
+        if (parsingTable.getGoToTable().containsKey(state)) {
+            return parsingTable.getGoToTable().get(state).get(nonTerminal);
+        }
+        return null;
     }
     
     /**
      * Maneja errores sintácticos
      */
     private void handleError(String currentState, String currentToken) {
-       
+        System.err.println("\n❌ ERROR SINTÁCTICO DETECTADO");
+        System.err.println("Estado actual: " + currentState);
+        System.err.println("Token actual: " + currentToken);
+        System.err.println("Posición: " + currentTokenIndex);
+        
+        // Delegar al ErrorHandler para manejo más sofisticado
+        errorHandler.handleSyntaxError(currentState, currentToken, currentTokenIndex, inputTokens);
     }
     
     /**
@@ -230,6 +245,46 @@ public class Parser {
      * Imprime el estado actual del parser (para debugging)
      */
     private void printParserState(String currentState, String currentToken, String action) {
+        // Construir representación del stack
+        StringBuilder stackStr = new StringBuilder();
+        for (int i = 0; i < stateStack.size(); i++) {
+            if (i < symbolStack.size()) {
+                stackStr.append(stateStack.get(i)).append(symbolStack.get(i));
+            } else {
+                stackStr.append(stateStack.get(i));
+            }
+        }
+        
+        // Construir representación del input restante
+        StringBuilder inputStr = new StringBuilder();
+        for (int i = currentTokenIndex; i < inputTokens.size(); i++) {
+            inputStr.append(inputTokens.get(i));
+            if (i < inputTokens.size() - 1) inputStr.append(" ");
+        }
+        
+        // Describir la acción
+        String actionDescription = "";
+        if (action != null) {
+            if (action.equals("ACCEPT")) {
+                actionDescription = "ACCEPT";
+            } else if (action.startsWith("S")) {
+                actionDescription = "SHIFT -> Estado " + action.substring(1);
+            } else if (action.startsWith("R")) {
+                ReduceEntry reduceInfo = parsingTable.getReduceDictionary().get(action);
+                if (reduceInfo != null) {
+                    actionDescription = action + ": Reduce " + reduceInfo.getProduction_head() + " -> " + reduceInfo.getProduction_value();
+                } else {
+                    actionDescription = action + ": Reduce";
+                }
+            }
+        } else {
+            actionDescription = "ERROR";
+        }
+        
+        System.out.printf("%-15s | %-20s | %-40s%n", 
+                         stackStr.toString(), 
+                         inputStr.toString(), 
+                         actionDescription);
     }
     
     // Getters para acceso externo
