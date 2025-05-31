@@ -214,8 +214,7 @@ public class ErrorHandler {
         
         return -1; // No se encontró punto de sincronización
     }
-    
-    /**
+       /**
      * Valida si un token puede ser insertado para recuperación
      * 
      * Proceso implementado:
@@ -224,7 +223,14 @@ public class ErrorHandler {
      * 3. Retornar viabilidad de la inserción
      */
     private boolean canInsertToken(String tokenToInsert, String currentState) {
-       
+        if (parsingTable == null) return false;
+        
+        // Verificar si hay una acción válida para este token en el estado actual
+        String action = parsingTable.getActionTable()
+                .getOrDefault(currentState, new java.util.HashMap<>())
+                .get(tokenToInsert);
+        
+        return action != null && !action.trim().isEmpty();
     }
     
     /**
@@ -236,14 +242,60 @@ public class ErrorHandler {
      * 3. Sugerir correcciones comunes (typos, símbolos faltantes)
      */
     private List<String> generateSuggestions(String unexpectedToken, Set<String> expectedTokens) {
-       
+        List<String> suggestions = new ArrayList<>();
+        
+        if (expectedTokens.isEmpty()) {
+            suggestions.add("Verificar la sintaxis de la gramática");
+            return suggestions;
+        }
+        
+        // Sugerir tokens esperados
+        if (expectedTokens.size() <= 3) {
+            suggestions.add("Se esperaba uno de: " + String.join(", ", expectedTokens));
+        } else {
+            suggestions.add("Se esperaba un token válido. Tokens posibles: " + 
+                          String.join(", ", expectedTokens).substring(0, Math.min(50, String.join(", ", expectedTokens).length())) + "...");
+        }
+        
+        // Buscar similitudes simples (para errores de tipeo)
+        for (String expected : expectedTokens) {
+            if (isTypoLikely(unexpectedToken, expected)) {
+                suggestions.add("¿Quiso decir '" + expected + "' en lugar de '" + unexpectedToken + "'?");
+                break;
+            }
+        }
+        
+        // Sugerencias específicas por contexto
+        if (expectedTokens.contains("]") && !expectedTokens.contains("[")) {
+            suggestions.add("Parece que falta cerrar un bloque con ']'");
+        }
+        
+        if (expectedTokens.contains("$")) {
+            suggestions.add("La entrada parece estar incompleta");
+        }
+        
+        return suggestions;
     }
     
     /**
      * Verifica si es probable que sea un error de tipeo
      */
     private boolean isTypoLikely(String actual, String expected) {
-  
+        if (actual == null || expected == null) return false;
+        
+        // Verificar longitud similar
+        if (Math.abs(actual.length() - expected.length()) > 2) return false;
+        
+        // Verificar caracteres en común
+        int commonChars = 0;
+        for (char c : actual.toCharArray()) {
+            if (expected.indexOf(c) >= 0) {
+                commonChars++;
+            }
+        }
+        
+        // Si más del 60% de los caracteres coinciden, es probable un typo
+        return (double) commonChars / Math.max(actual.length(), expected.length()) > 0.6;
     }
     
     /**
@@ -255,7 +307,26 @@ public class ErrorHandler {
      * 3. Mostrar sugerencias si están disponibles
      */
     private void reportError(ErrorReport report) {
-
+        System.err.println("\n" + "=".repeat(50));
+        System.err.println("❌ ERROR SINTÁCTICO #" + errorCount);
+        System.err.println("=".repeat(50));
+        System.err.println("Tipo: " + report.getErrorType());
+        System.err.println("Mensaje: " + report.getMessage());
+        System.err.println("Posición: " + report.getPosition());
+        System.err.println("Token encontrado: '" + report.getUnexpectedToken() + "'");
+        
+        if (!report.getExpectedTokens().isEmpty()) {
+            System.err.println("Tokens esperados: " + report.getExpectedTokens());
+        }
+        
+        if (!report.getSuggestions().isEmpty()) {
+            System.err.println("\nSugerencias:");
+            for (String suggestion : report.getSuggestions()) {
+                System.err.println("  • " + suggestion);
+            }
+        }
+        
+        System.err.println("=".repeat(50));
     }
     
     /**
@@ -267,7 +338,22 @@ public class ErrorHandler {
      * - Verificar si la recuperación fue exitosa
      */
     public boolean shouldContinueParsing() {
-       
+        // Decidir basado en:
+        // - Número de errores (umbral máximo)
+        // - Modo pánico activado
+        // - Tipo de errores encontrados
+        
+        if (errorCount >= 10) {
+            System.err.println("⚠️  Demasiados errores encontrados. Abortando parseo.");
+            return false;
+        }
+        
+        if (panicMode && errorCount >= 5) {
+            System.err.println("⚠️  Modo pánico activado con múltiples errores. Abortando parseo.");
+            return false;
+        }
+        
+        return true;
     }
     
     /**
@@ -283,7 +369,26 @@ public class ErrorHandler {
      * Obtiene resumen de errores encontrados
      */
     public String getErrorSummary() {
-     
+        if (errorCount == 0) {
+            return "✅ No se encontraron errores sintácticos";
+        }
+        
+        StringBuilder summary = new StringBuilder();
+        summary.append("❌ Resumen de errores encontrados:\n");
+        summary.append("Total de errores: ").append(errorCount).append("\n");
+        
+        // Contar por tipo
+        java.util.Map<ErrorType, Integer> countByType = new java.util.HashMap<>();
+        for (ErrorReport report : errorHistory) {
+            countByType.put(report.getErrorType(), 
+                           countByType.getOrDefault(report.getErrorType(), 0) + 1);
+        }
+        
+        for (java.util.Map.Entry<ErrorType, Integer> entry : countByType.entrySet()) {
+            summary.append("  - ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+        }
+        
+        return summary.toString();
     }
     
     // Getters para información de estado
