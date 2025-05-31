@@ -62,18 +62,8 @@ public class yalpInterpreter {
                     continue; // Ignorar líneas vacías
 
                 // Manejo de comentarios
-                if (line.startsWith("/*")) {
-                    if (line.endsWith("*/")) {
-                        continue;
-                    }
-                    activeComment = true; // Cambiamos al modo de lectura de comentarios
-                    continue;
-                }
-
-                if (activeComment) {
-                    if (line.endsWith("*/")) {
-                        activeComment = false; // Salimos del modo de lectura de comentarios
-                    }
+                line = checkforComments(line);
+                if (line.isEmpty()) {
                     continue;
                 }
 
@@ -121,6 +111,12 @@ public class yalpInterpreter {
                     line_num++;
                     line = line.trim();
 
+                    // Manejo de comentarios
+                    line = checkforComments(line);
+                    if (line.isEmpty()) {
+                        continue;
+                    }
+
                     // Si la línea contiene ';', es el fin de la producción
                     boolean endsWithSemicolon = line.endsWith(";");
 
@@ -134,13 +130,19 @@ public class yalpInterpreter {
                                 if (part.endsWith(";")) {
                                     part = part.substring(0, part.length() - 1).trim();
                                     if (!part.isEmpty()) {
-                                        actualProductions.add(part);
+                                        if (part.equals("NULL") || part.isEmpty()) {
+                                            actualProductions.add(null);
+                                        } else {
+                                            actualProductions.add(part);
+                                        }
                                     }
-                                    reading_a_production = false;
-                                    savedProductions.put(actualProductionHead, actualProductions);
                                     continue; // salimos del for
                                 } else {
-                                    actualProductions.add(part);
+                                    if (part.equals("NULL") || part.isEmpty()) {
+                                        actualProductions.add(null);
+                                    } else {
+                                        actualProductions.add(part);
+                                    }
                                 }
                             }
                         }
@@ -153,11 +155,18 @@ public class yalpInterpreter {
                         if (endsWithSemicolon) {
                             String production = line.substring(0, line.length() - 1).trim();
                             if (!production.isEmpty()) {
-                                actualProductions.add(production);
+                                if (production.equals("NULL") || production.isEmpty()) {
+                                    actualProductions.add(null);
+                                } else {
+                                    actualProductions.add(production);
+                                }
                             }
                             reading_a_production = false;
                             savedProductions.put(actualProductionHead, actualProductions);
                         } else {
+                            if (line.equals("NULL") || line.isEmpty()) {
+                                actualProductions.add(null);
+                            }
                             actualProductions.add(line);
                         }
                     }
@@ -169,4 +178,40 @@ public class yalpInterpreter {
             System.err.println(e.getMessage());
         }
     }
+
+    private String checkforComments(String line) {
+        // Si ya estamos dentro de un comentario
+        if (activeComment) {
+            if (line.contains("*/")) {
+                activeComment = false;
+                line = line.substring(line.indexOf("*/") + 2).strip();
+                return line;
+            } else {
+                return line; // Seguimos ignorando
+            }
+        }
+
+        // Comentario de apertura en la misma línea
+        if (line.contains("/*")) {
+            int start = line.indexOf("/*");
+            int end = line.indexOf("*/", start + 2);
+
+            if (end != -1) {
+                // El comentario termina en la misma línea
+                String before = line.substring(0, start);
+                String after = line.substring(end + 2);
+                line = (before + after).strip();
+
+                return line;
+            } else {
+                // El comentario sigue en varias líneas
+                line = line.substring(0, start).strip();
+                activeComment = true;
+                return line;
+            }
+        }
+
+        return line;
+    }
+
 }

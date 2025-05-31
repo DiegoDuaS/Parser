@@ -12,7 +12,7 @@ public class extension {
     public static GrammarExtended extenderGramatica(Grammar original) {
         String originalStart = original.getInitialSimbol();
         String extendedStart = originalStart + "'";
-        
+
         GrammarExtended gext = new GrammarExtended(extendedStart);
 
         gext.agregarProduccion(extendedStart, List.of(originalStart), 0);
@@ -20,6 +20,9 @@ public class extension {
         for (Map.Entry<String, List<String>> entry : original.getProductions().entrySet()) {
             String lhs = entry.getKey();
             for (String prod : entry.getValue()) {
+                if (prod == null) {
+                    continue; // Ignora esta producción, pero sigue con las demás
+                }
                 List<String> rhs = Arrays.asList(prod.trim().split("\\s+"));
                 gext.agregarProduccion(lhs, rhs, 0);
             }
@@ -31,7 +34,7 @@ public class extension {
         return gext;
     }
 
-     public static void main(String[] args) {
+    public static void main(String[] args) {
         Grammar g = new Grammar("S");
         g.agregarNoTerminal("S");
         g.agregarNoTerminal("P");
@@ -61,7 +64,8 @@ public class extension {
         System.out.println("EXTENDED");
 
         // Imprimir producciones de la extendida
-        for (Map.Entry<String, List<GrammarExtended.ProductionWithPointer>> entry : extendida.getProductions().entrySet()) {
+        for (Map.Entry<String, List<GrammarExtended.ProductionWithPointer>> entry : extendida.getProductions()
+                .entrySet()) {
             String noTerminal = entry.getKey();
             for (GrammarExtended.ProductionWithPointer prod : entry.getValue()) {
                 System.out.println(noTerminal + " -> " + prod.toString());
@@ -69,6 +73,4 @@ public class extension {
         }
     }
 
-    
 }
-

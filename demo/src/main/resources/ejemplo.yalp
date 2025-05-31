@@ -10,21 +10,22 @@
 %token LHOOK RHOOK
 %token LBRAKETS RBRAKETS
 %token EOL EOF
+%token EOL EOF
 
 %token WS
 IGNORE WS
 /* FINALIZA Sección de TOKENS */
 
 %%
-/* INICIA Sección de PRODUCCIONES */
 
-// Una producción tipo expresión aritmética
+/* INICIA Sección 
+de PRODUCCIONES */
 program:
     statements EOF
 ;
 
 statements:
-    statements statement
+    statements /* comentario */ statement
     | statement
 ;
 
