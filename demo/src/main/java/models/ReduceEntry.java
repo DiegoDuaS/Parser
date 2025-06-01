@@ -1,6 +1,10 @@
 package models;
 
-public class ReduceEntry {
+import java.io.Serializable;
+
+public class ReduceEntry implements Serializable{
+    private static final long serialVersionUID = 1L;
+
     private String state;
     private String production_head;
     private String production_value;

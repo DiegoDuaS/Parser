@@ -1,12 +1,13 @@
 package models;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class GrammarExtended {
+public class GrammarExtended implements Serializable{
 
     private String initialSymbol;
     private Map<String, List<ProductionWithPointer>> productions = new LinkedHashMap<>();
@@ -63,7 +64,9 @@ public class GrammarExtended {
         this.noTerminales = noTerminales;
     }
 
-    public static class ProductionWithPointer {
+    public static class ProductionWithPointer implements Serializable{
+        private static final long serialVersionUID = 1L;
+        
         private List<String> symbols;
         private int pointer;
 

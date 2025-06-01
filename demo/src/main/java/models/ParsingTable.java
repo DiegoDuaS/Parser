@@ -1,10 +1,13 @@
 package models;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ParsingTable {
+public class ParsingTable implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private AFD associatedAfd;
     private Grammar originalGrammar;
     private Map<String, Map<String, String>> actionTable; // estado, <simbolo, accion>

@@ -1,8 +1,11 @@
 package models;
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-public class EstadoAFD {
+public class EstadoAFD implements Serializable{
+    private static final long serialVersionUID = 1L;
+
     private String id;
     private List<GrammarExtended.ProductionWithPointer> items;
 

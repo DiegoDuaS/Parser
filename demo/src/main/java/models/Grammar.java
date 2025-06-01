@@ -1,11 +1,14 @@
 package models;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Grammar {
+public class Grammar implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private Map<String, List<String>> productions; // Producciones por no terminal
     private List<String> terminales; // Terminales
     private List<String> noTerminales; // No terminales

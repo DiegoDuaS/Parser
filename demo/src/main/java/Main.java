@@ -1,4 +1,6 @@
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -81,6 +83,15 @@ public class Main {
 
             // Generar tablas de parseo (action + go-to)
             ParsingTable parseTable = generateParseTable.generateTables(afd, grammar);
+
+            System.out.println("\nStep: Guardar Parsing Table");
+            try (ObjectOutputStream out = new ObjectOutputStream(
+                    new FileOutputStream("demo/src/main/resources/PARSE_TABLE.dat"))) {
+                out.writeObject(parseTable);
+                System.out.println("Parsing Table guardado correctamente.");
+            } catch (IOException e) {
+                System.err.println("Error al guardar la Parsing Table: " + e.getMessage());
+            }
 
             // Crear parser
             Parser parser = new Parser(parseTable);
