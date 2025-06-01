@@ -1,20 +1,17 @@
 package modules.parser;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
+import com.example.models.Token;
 
-import models.AFD;
-import models.EstadoAFD;
-import models.Grammar;
-import models.GrammarExtended;
+
 import models.ParsingTable;
 import models.ReduceEntry;
-import modules.automaton.automatom;
-import modules.automaton.extension;
 import modules.error.ErrorHandler;
-import modules.tables.generateParseTable;
 
 /**
  * Módulo de Parseo - Realiza el análisis sintáctico LR(0)
@@ -311,79 +308,41 @@ public class Parser {
         this.debug = debug;
     }
     
-    /**
-     * Método main con ejemplo de uso
-     */
-    public static void main(String[] args) {
-        System.out.println("=== GENERANDO GRAMÁTICA Y TABLAS DE PARSEO ===");
-        
-        // 1. Crear gramática base
-        Grammar g = new Grammar("S");
-        g.agregarNoTerminal("S");
-        g.agregarNoTerminal("P");
-        g.agregarNoTerminal("Q");
 
-        g.agregarTerminal("^");
-        g.agregarTerminal("V");
-        g.agregarTerminal("[");
-        g.agregarTerminal("]");
-        g.agregarTerminal("sentence");
 
-        g.agregarProduccion("S", "S ^ P");
-        g.agregarProduccion("S", "P");
-        g.agregarProduccion("P", "P V Q");
-        g.agregarProduccion("P", "Q");
-        g.agregarProduccion("Q", "[ S ]");
-        g.agregarProduccion("Q", "sentence");
-
-        // 2. Extender la gramática
-        GrammarExtended extendida = extension.extenderGramatica(g);
-
-        // 3. Crear el estado inicial del AFD
-        EstadoAFD estado0 = automatom.crearEstadoInicial(extendida);
-
-        // 4. Generar AFD
-        AFD afd = automatom.generarAFD(extendida, estado0);
-
-        // 5. Generar tablas de parseo
-        ParsingTable parseTable = generateParseTable.generateTables(afd, g);
-        
-        // 6. Crear parser
-        Parser parser = new Parser(parseTable);
-        
-        // 7. EJEMPLOS DE PARSEO
-        System.out.println("\n" + "=".repeat(60));
-        System.out.println("EJEMPLOS DE PARSEO");
-        System.out.println("=".repeat(60));
-        
-        // Ejemplo 1: sentence V sentence $ (debería ser aceptado)
-        System.out.println("\n--- EJEMPLO 1: sentence V sentence $ ---");
-        List<String> input1 = Arrays.asList("sentence", "V", "sentence", "$");
-        boolean resultado1 = parser.parse(input1);
-        System.out.println("Resultado: " + (resultado1 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
-        
-        // Ejemplo 2: [ sentence ] $ (debería ser aceptado)
-        System.out.println("\n--- EJEMPLO 2: [ sentence ] $ ---");
-        List<String> input2 = Arrays.asList("[", "sentence", "]", "$");
-        boolean resultado2 = parser.parse(input2);
-        System.out.println("Resultado: " + (resultado2 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
-        
-        // Ejemplo 3: sentence ^ [ sentence V sentence ] $ (debería ser aceptado)
-        System.out.println("\n--- EJEMPLO 3: sentence ^ [ sentence V sentence ] $ ---");
-        List<String> input3 = Arrays.asList("sentence", "^", "[", "sentence", "V", "sentence", "]", "$");
-        boolean resultado3 = parser.parse(input3);
-        System.out.println("Resultado: " + (resultado3 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
-        
-        // Ejemplo 4: sentence V $ (ERROR - incompleto)
-        System.out.println("\n--- EJEMPLO 4: sentence V $ (ERROR) ---");
-        List<String> input4 = Arrays.asList("sentence", "V", "$");
-        boolean resultado4 = parser.parse(input4);
-        System.out.println("Resultado: " + (resultado4 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
-        
-        // Ejemplo 5: [ sentence $ (ERROR - falta ])
-        System.out.println("\n--- EJEMPLO 5: [ sentence $ (ERROR) ---");
-        List<String> input5 = Arrays.asList("[", "sentence", "$");
-        boolean resultado5 = parser.parse(input5);
-        System.out.println("Resultado: " + (resultado5 ? "✅ ACEPTADO" : "❌ RECHAZADO"));
+/**
+ * Parsea una lista de listas de strings usando el parser LR(0)
+ * 
+ * @param lineasParaParsear Lista de listas de strings, donde cada lista interna representa una línea a parsear
+ * @return Lista de resultados booleanos, uno por cada línea procesada
+ */
+public List<Boolean> parseFile(List<List<String>> lineasParaParsear) {
+    List<Boolean> results = new ArrayList<>();
+    
+    for (List<String> tokens : lineasParaParsear) {
+        boolean result = parse(tokens);
+        results.add(result);
     }
+    
+    return results;
+}
+
+/**
+ * Imprime un resumen de los resultados del parseo
+ */
+public void printParser(List<Boolean> results) {
+    int totalLines = results.size();
+    int acceptedLines = (int) results.stream().mapToInt(b -> b ? 1 : 0).sum();
+    int rejectedLines = totalLines - acceptedLines;
+    
+    System.out.println("\n" + "=".repeat(60));
+    System.out.println("RESUMEN DEL PARSEO");
+    System.out.println("=".repeat(60));
+    System.out.println("Total de líneas procesadas: " + totalLines);
+    System.out.println("Líneas aceptadas: " + acceptedLines + " ✅");
+    System.out.println("Líneas rechazadas: " + rejectedLines + " ❌");
+    System.out.printf("Tasa de éxito: %.2f%%\n", (totalLines > 0 ? (double) acceptedLines / totalLines * 100 : 0.0));
+    System.out.println("=".repeat(60));
+}
+
 }
