@@ -20,6 +20,7 @@ import modules.automaton.automatom;
 import modules.automaton.extension;
 import modules.input.yalpInterpreter;
 import modules.parser.Parser;
+import modules.parser.TraduccionToken;
 import modules.tables.generateParseTable;
 
 public class Main {
@@ -84,6 +85,9 @@ public class Main {
             // Generar tablas de parseo (action + go-to)
             ParsingTable parseTable = generateParseTable.generateTables(afd, grammar);
 
+            TraduccionToken TraduccionToken = new TraduccionToken();
+            List<List<String>> lineasParaParsear = TraduccionToken.traducirTokens(Lex_tokens);
+
             System.out.println("\nStep: Guardar Parsing Table");
             try (ObjectOutputStream out = new ObjectOutputStream(
                     new FileOutputStream("demo/src/main/resources/PARSE_TABLE.dat"))) {
@@ -93,8 +97,16 @@ public class Main {
                 System.err.println("Error al guardar la Parsing Table: " + e.getMessage());
             }
 
-            // Crear parser
-            Parser parser = new Parser(parseTable);
+            System.out.println("\nStep: Guardar Lista de Tokens");
+            try (ObjectOutputStream out = new ObjectOutputStream(
+                    new FileOutputStream("demo/src/main/resources/TOKENS_LIST.dat"))) {
+                out.writeObject(lineasParaParsear);
+                System.out.println("Lista de Tokens guardado correctamente.");
+            } catch (IOException e) {
+                System.err.println("Error al guardar la Parsing Table: " + e.getMessage());
+            }
+
+
 
         } catch (IOException e) {
             e.printStackTrace();
