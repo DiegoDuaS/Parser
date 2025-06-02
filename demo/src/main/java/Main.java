@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -10,6 +11,7 @@ import java.util.Set;
 import com.example.Modules.Analisis.Complete_Lex;
 import com.example.models.Token;
 
+import drawings.DrawAFD;
 import models.AFD;
 import models.EstadoAFD;
 import models.Grammar;
@@ -80,6 +82,10 @@ public class Main {
 
             // Generar AFD
             AFD afd = automatom.generarAFD(extendida, estado0);
+
+            DrawAFD panel = new DrawAFD(afd);
+            panel.display();
+            panel.saveAsPNG(new File("demo/src/main/java/drawings/automata.png"));
 
             // Generar tablas de parseo (action + go-to)
             ParsingTable parseTable = generateParseTable.generateTables(afd, grammar);
