@@ -19,7 +19,6 @@ import models.ParsingTable;
 import modules.automaton.automatom;
 import modules.automaton.extension;
 import modules.input.yalpInterpreter;
-import modules.parser.Parser;
 import modules.parser.TraduccionToken;
 import modules.tables.generateParseTable;
 
@@ -106,7 +105,8 @@ public class Main {
                 System.err.println("Error al guardar la Parsing Table: " + e.getMessage());
             }
 
-
+            System.out.println("\nStep: Generando Archivo Ejecutable");
+            JavaFileGenerator.generateYalpFile();
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -18,43 +18,32 @@ IGNORE WS
 
 %%
 
-/* INICIA Sección 
-de PRODUCCIONES */
 program:
-    statements EOF
+    statements
 ;
 
 statements:
-    statements /* comentario */ statement
-    | statement
+    statement
+    | statements statement
 ;
 
 statement:
-    assignment
-    | expression
-    | COMMENT
+    assignment EOF
 ;
 
 assignment:
-    VARIABLE EQUALS expression
+    WORD EQUALS expression
+    | VARIABLE EQUALS expression
 ;
 
 expression:
-    expression PLUS term
-    | expression MINUS term
-    | term
-;
-
-term:
-    term TIMES factor
-    | term DIV factor
-    | factor
-;
-
-factor:
-    NUMBER
+    DIGIT
+    | NUMBER
+    | WORD
     | VARIABLE
+    | expression PLUS expression
+    | expression MINUS expression
+    | expression TIMES expression
+    | expression DIV expression
     | LPAREN expression RPAREN
 ;
-
-/* FINALIZA Sección de PRODUCCIONES */
