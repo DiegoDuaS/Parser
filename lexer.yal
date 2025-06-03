@@ -10,19 +10,18 @@
 
 let digit = ['0'-'9']
 let number = digit+
+let float = number'.'number
 let blanks = ' '|'\t'
 let word = ['A'-'Z''a'-'z']+
 let comment = '''word'''
 let variable = word'_'number
-let punct = '?'|'!'|'.'
+let punct = '!'|'.'
 let singleString = ('''|'"')(word|digit|' '|punct)*('''|'"')
+let singleComment = '#'(word|digit|' '|punct)*
 let menor = '>'
 let menorigual = menor'='
 let mayor = '<'
 let mayorigual = mayor'='
-
-let multilineCommentStart = '/''*'(comment|blanks)+
-let multilineCommentEnd = (comment|blanks)+'*''/'
 
 rule gettoken =
 blanks { return lexbuf }
@@ -39,7 +38,8 @@ blanks { return lexbuf }
 | '=' { return EQUALS }
 | digit { return DIGIT }
 | number { return NUMBER }
-| singleString { return COMMENT }
+| singleString { return STRING }
+| singleComment {return COMMENT}
 | variable { return VARIABLE }
 | word { return WORD }
 | '&' { return APPERSAND }
@@ -52,3 +52,8 @@ blanks { return lexbuf }
 | ';' { return EOF }
 | '[' { return LBRAKETS }
 | ']' { return RBRAKETS }
+| 'i''f' {return IF}
+| 'e''l''s''e' {return ELSE}
+| float {return FLOAT}
+| '?' {return QUESTION}
+| ':' {return COLON}

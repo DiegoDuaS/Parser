@@ -1,15 +1,16 @@
-/* Definición de parser */
 /* INICIA Sección de TOKENS */
 %token PLUS MINUS TIMES DIV
 %token LPAREN RPAREN
 %token POINT COMA NUMERAL EQUALS
-%token DIGIT NUMBER WORD VARIABLE
-%token COMMENT
+%token DIGIT NUMBER WORD VARIABLE FLOAT
+%token COMMENT STRING
 %token APPERSAND
 %token LESS LESSEQ MORE MOREEQ
 %token LHOOK RHOOK
 %token LBRAKETS RBRAKETS
 %token EOL EOF
+%token IF ELSE
+%token QUESTION COLON
 %token lexbuf
 
 %token WS
@@ -28,7 +29,11 @@ statements:
 ;
 
 statement:
-    assignment EOF
+    expression EOF
+    | assignment EOF
+    | COMMENT
+    | function_call EOF
+    | if_statement
 ;
 
 assignment:
@@ -37,13 +42,44 @@ assignment:
 ;
 
 expression:
+    operand
+    | expression PLUS operand
+    | expression MINUS operand
+    | expression TIMES operand
+    | expression DIV operand
+    | expression relop operand
+    | expression APPERSAND APPERSAND operand
+    | expression QUESTION expression COLON expression
+;
+
+operand:
     DIGIT
     | NUMBER
+    | FLOAT
     | WORD
     | VARIABLE
-    | expression PLUS expression
-    | expression MINUS expression
-    | expression TIMES expression
-    | expression DIV expression
+    | STRING
     | LPAREN expression RPAREN
+;
+
+function_call:
+    WORD LPAREN arguments RPAREN
+;
+
+arguments:
+    expression
+    | expression COMA arguments
+    | NULL
+;
+
+if_statement:
+    IF LPAREN expression RPAREN block ELSE block
+;
+
+relop:
+    LESS | LESSEQ | MORE | MOREEQ | EQUALS
+;
+
+block:
+    LHOOK statements RHOOK
 ;

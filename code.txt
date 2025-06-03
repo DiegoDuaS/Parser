@@ -1,29 +1,21 @@
-x = 5
-y = x + 3
-z = (x + y) * 2
-a = z / 4 - 1
+x = 5;
+y = x + 3;
+z = (x + y) * 2;
+a = z / 4 - 1;
 
-25 + 44
-12345 + 67890 * (42 / 6) - 99 variable_1
-variable_1 = 'Hello World!'
-if (x >= 100 && y < 50) {
-    resultado = x + y * 2;
-} else {
-    resultado = x - y / 3;
-}
+25 + 44;
+variable_1 = 'Hello World!';
 
-/* Comentario multilinea
-   con varias lineas de texto */
+12345 + 67890 * (42 / 6) - 99 * variable_1;
+
+precio = 49.99;
+descuento = precio * 0.10;
+total = precio - descuento;
+
+funcionName(3, 4, "texto dentro de funcion");
+
+if (x >= 100 && y < 50) { resultado = x + y * 2; } else { resultado = x - y / 3; }
+
+x > 10 ? a : b;
 
 # Comentario de una sola linea
-
-let precio = 49.99;
-let descuento = precio * 0.10;
-let total = precio - descuento;
-
-funcion_cool(3, 4, "texto dentro de funcion");
-
-[a-z]  [A-Z]  [0-9]  ['a'-'z']  ['0'-'9']  
-([0-9])  ([a-z]#[p-t])
-
-// Caracteres especiales y escape
